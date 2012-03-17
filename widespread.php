@@ -153,45 +153,77 @@ abstract class Widespread {
   * extract references and gather file contents > return as array filename <> contents - TODO: > remove those suppressor's when gathering contents and/or handle w/some kind of feedback > lalalog.
   *
   * @param {Array} $bucket array holding references and their contents
-  * @param {String} $filename file to assign template to
+  * @param {Array} $options array holding options 
+  * @param {Array} $widgets array holding special buckets
+  * @param {String} $filename file to assign template to  
   * @param {String} $template string template content (optional - file will be read if empty string encountered)
   * @param {Boolean} $process replace references in bucket list
+  * @param {Boolean} $trace injection o information when replacing partials 
+  * @param {String} $trace_prefix prefix trace
+  * @param {String} $regex pattern to match references
   * @param {String} $regex pattern to match references
   * @return {String} partials
   */
 
-  public static function FetchPartials(&$bucket, $filename, $template='', $process=false) {
+  public static function FetchPartials(&$bucket, &$options, &$widgets, $filename, $template='', $process=false, $trace=false, $trace_prefix='/* ', $trace_suffix=' */') {
 
-    // init retval
+    // init runkit_return_value_used(oid)
     $partials = '';
-
+ 
     // diversity matters
-    if(isset($bucket[$filename])) return $bucket[$filename];
+    if(isset($bucket[$filename])) 
+      return $bucket[$filename];    
 
     // helper > hold regex matches for referenced partials
     $matches = array();   
 
     // helper > convenience
-    $template = ($template==='') ? (@file_get_contents($filename)) : $template;
+    $template = ($template==='') ? (@file_get_contents($filename, FILE_USE_INCLUDE_PATH)) : $template;
 
     // store partials content
-    $partials = $bucket[$filename] = $template; 
+    $partials = $bucket[$filename] = $template; //str_replace(array("\n", "\t"), "", $template);       
 
     // look out for partials
     while (preg_match(self::PARTIAL_REF, $template, $matches, PREG_OFFSET_CAPTURE)) {
 
-      // process found partials {{>partial}} >> partial || set empty 
-      (($partials .= self::FetchPartials($bucket, $matches[2][0], file_get_contents($matches[2][0]))) || ($bucket[$matches[2][0]] = ''));
+      // matches matches matches      
+      if(($pos=strpos($matches[2][0], ":[{"))!==false) {
+
+        // keep copy o original match
+        $original = $matches[2][0];
+
+        // extract metadata from filename
+        $metadata = substr($original, ($pos+3), -3);
+
+        // extract filename
+        $partial_filename = trim(substr($original, 0, $pos));   
+
+        // store options
+        $options[$partial_filename] = json_decode(" { ".substr(trim(str_replace(array("\n", "\t"), "", $metadata)), 0, -3)." } ", true);       
       
+        // replace reference 
+        $template = str_replace($matches[2][0], $partial_filename, $template);
+
+        // replace match w correct filename
+        $matches[0][0] = $matches[2][0] = $partial_filename;
+        
+        // store original contents to replace em' laterz 
+        $widgets[$partial_filename] = $original;
+          
+      }
+
+      // process found partials {{>partial}} >> partial || set empty 
+      (($partials .= self::FetchPartials($bucket, $options, $widgets, $matches[2][0], '')) || ($bucket[$matches[2][0]] = ''));
+
       // prep next partial (offset + match.length)
-      if ((substr($template, ($next_offset = $matches[0][1] + strlen($matches[0][0])), 1) == "\n")) { $next_offset++;}
+      if ((substr($template, ($next_offset = $matches[0][1] + strlen($matches[0][0])), 1) == "\n")) { $next_offset++; }
 
       // fetch next
       $template = substr($template, $next_offset);
     }
 
     // direct process?
-    if($process) { $bucket = self::ReplacePartials($bucket); }
+    if($process) { $bucket = self::ReplacePartials($bucket, $widgets, $trace, $trace_prefix, $trace_suffix); }
 
     // over and out
     return $partials;
@@ -203,13 +235,13 @@ abstract class Widespread {
   * @param {Array} $bucket array holding references and their contents
   * @return {Array} bucket's content w/partial references replaced
   */
-  public static function ReplacePartials($bucket){
+  public static function ReplacePartials($bucket, &$widgets, $trace=false, $trace_prefix='/* ', $trace_suffix=' */'){  
 
     // extract bucket identifiers
     $buckets = array_keys($bucket);
     
     // iterate buckets and replace references - TODO: find a better way than that q&d-impl.
-    foreach($buckets as $key) { foreach($buckets as $key2) { $bucket[$key] = str_replace("{{>".$key2."}}", $bucket[$key2], $bucket[$key]); } }
+    foreach($buckets as $key) { foreach($buckets as $key2) { $bucket[$key] = str_replace("{{>".$key2."}}", ($trace?$trace_prefix.'[START] '.$key2.$trace_suffix."\n":'').$bucket[$key2].($trace?$trace_prefix.'[END] '.$key2.$trace_suffix."\n":''), $bucket[$key]); $bucket[$key] = str_replace(array_values($widgets), array_keys($widgets), $bucket[$key]); } }
 
     // ...
     return $bucket;
