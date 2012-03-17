@@ -159,9 +159,8 @@ abstract class Widespread {
   * @param {String} $template string template content (optional - file will be read if empty string encountered)
   * @param {Boolean} $process replace references in bucket list
   * @param {Boolean} $trace injection o information when replacing partials 
-  * @param {String} $trace_prefix prefix trace
-  * @param {String} $regex pattern to match references
-  * @param {String} $regex pattern to match references
+  * @param {String} $trace_prefix 
+  * @param {String} $trace_suffix 
   * @return {String} partials
   */
 
