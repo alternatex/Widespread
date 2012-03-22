@@ -20,7 +20,7 @@ abstract class Widespread {
   * @constant
   * @type {String}
   */  
-  const VERSION = '0.0.1a'; 
+  const VERSION = '0.1.1a'; 
  
   /**
   * num o bytes to be read for metadata analysis
@@ -53,9 +53,9 @@ abstract class Widespread {
   /**
   * scan directory and extract it's content's metadata 
   *
+  * @static 
   * @param string $meta_dir root-directory to scan from
   * @param array $meta_attributes attributes to be extracted
-  * @static
   * @return array $metas
   */
   public static function FetchMetadata($meta_dir = '', $meta_attributes = array('Name')) {
@@ -152,6 +152,7 @@ abstract class Widespread {
   /**
   * extract references and gather file contents > return as array filename <> contents - TODO: > remove those suppressor's when gathering contents and/or handle w/some kind of feedback > lalalog.
   *
+  * @static 
   * @param {Array} $bucket array holding references and their contents
   * @param {Array} $options array holding options 
   * @param {Array} $widgets array holding special buckets
@@ -166,7 +167,7 @@ abstract class Widespread {
 
   public static function FetchPartials(&$bucket, &$options, &$widgets, $filename, $template='', $process=false, $trace=false, $trace_prefix='/* ', $trace_suffix=' */') {
 
-    // init runkit_return_value_used(oid)
+    // init 
     $partials = '';
  
     // diversity matters
@@ -234,6 +235,7 @@ abstract class Widespread {
   * @param {Array} $bucket array holding references and their contents
   * @return {Array} bucket's content w/partial references replaced
   */
+
   public static function ReplacePartials($bucket, &$widgets, $trace=false, $trace_prefix='/* ', $trace_suffix=' */'){  
 
     // extract bucket identifiers
@@ -245,6 +247,84 @@ abstract class Widespread {
     // ...
     return $bucket;
   }
+
+  /**
+  * TODO: define supported objects and friends - check if there is a way to not loose pre-fetched stuff *only* affecting references to primitive datatypes, so ..... > $xxx = &$data['yyy']; first, then changing reference name???
+  *
+  * wrapper for getting or setting, renaming and enforcing type of object/array segments 
+  *
+  * @static 
+  * @param {Array} $data structured array
+  * @param {String} $paths structured array path/object type definition
+  * @param {Object} $set optional 
+  * @param {String} $rename optionally change the name of the last path segment
+  * @param {String} $type datatype for path segment (must be 'array' if not null for now)
+  * @return {Boolean} success or failure? TODO: ensure +++ add user_error => handle globally where appropriate? hmm.
+  */  
+
+  public static function AccessSegment(&$data, $path, $set=null, $rename=null, $type=null){    
+
+    // bypass silly inputs
+    if(!($path!='' && (is_object($data) || is_array($data) && sizeof($data)>0))) 
+      return ;
+    
+    // extract segments
+    $segments = explode('.', $path);
+    
+    // helpers
+    $previous = null;    
+
+    // assign base reference to "root node"
+    $current = &$data;
+    
+    // gather requested path segment
+    foreach($segments as $segmentIndex => &$segmentData){
+
+      // store parent if structured
+      if(is_object($current) || is_array($current)) $previous = $current;
+
+      // extract from object
+      if(is_object($current) && property_exists($current, $segmentData)) {        
+        $current = &$current->$segmentData;
+
+      // extract from array
+      } elseif(is_array($current) && array_key_exists($segmentData, $current)) {
+        $current = &$current[$segmentData];
+
+      // TODO: implement 4 real or kick
+      } else {
+        trigger_error("Unknown Datatype OR Property/Key Not Found", E_USER_WARNING);
+      }      
+
+    }
+
+    // enforce datatype?
+    if($type!=null) {
+      // check and process ^^
+    }
+
+    // update path segment value
+    if($set!=null) $current = $set;
+
+    // create new reference and remove current (after value set!)
+    if($rename!=null) {
+      // TODO: property/key existance check > already handled above, however, not that kewl yet. think.
+      // assignment/removal for objects
+      if(is_object($previous)) {        
+        $previous->$rename = $current;
+        unset($previous->$segmentData);    
+      // assignment/removal for arrays    
+      } elseif(is_array($previous)) {
+        $previous[$rename] = $current;
+        delete($previous[$segmentData]);
+      // TODO: implement 4 real or kick
+      } else{
+        trigger_error("Unknown Datatype OR Property/Key Not Found", E_USER_WARNING);
+      }   
+    }
+
+    return $current;
+  }  
 
 }
 ?>
