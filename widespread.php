@@ -4,7 +4,7 @@
 * Widespread
 *
 * @author Gianni Furger
-* @version 0.0.1a
+* @version 0.1.1a
 * @copyright 2012 Gianni Furger <gianni.furger@gmail.com>
 * @license MIT License (see LICENSE.md)
 * @example see bottom
