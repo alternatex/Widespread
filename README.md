@@ -5,21 +5,19 @@ Common utilities packed together
 
 Prerequisites
 -------------
--
+PHP 5.3
 
 Installation 
 -------------
 
 **Fetch sources** [https://github.com/alternatex/widespread/archive/master.zip](https://github.com/alternatex/widespread/archive/master.zip)
 
-**Extract to** <your-webroot-here>
-
-**Update environment variables**
+**Extract to** &lt;your-webroot-here&gt;
 
 Metadata Extraction
 -------------
 
-Extract metadata from file "header" (read first 4096 bytes of each file)
+Extract metadata from file "header" (read first 4096 bytes)
 
 Metadata-Syntax:
 
@@ -41,18 +39,6 @@ $metas = Widespread::FetchMetadata("examples/meta/", array(
 ));
 
 print_r($metas);
-
-```
-
-```js
-
-```
-
-```css
-
-```
-
-```html
 
 ```
 
