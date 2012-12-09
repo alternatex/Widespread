@@ -4,10 +4,10 @@
 * Widespread
 *
 * @author Gianni Furger
-* @version 0.1.1a
+* @version 1.0.0
 * @copyright 2012 Gianni Furger <gianni.furger@gmail.com>
-* @license MIT License (see LICENSE.md)
-* @example see bottom
+* @license Released under two licenses: new BSD, and MIT. (see LICENSE)
+* @example see README.md
 * 
 * Just a bunch o common utilities packed together
 *
@@ -20,7 +20,7 @@ abstract class Widespread {
   * @constant
   * @type {String}
   */  
-  const VERSION = '0.1.1a'; 
+  const VERSION = '1.0.0'; 
  
   /**
   * num o bytes to be read for metadata analysis
@@ -49,6 +49,13 @@ abstract class Widespread {
   * @type {String} | regex
   */  
   const PARTIAL_REF = '/{{(>)(.+?)\\1?}}+/s';
+
+  /**
+  * TODO: solve properly - comma separated list of filenames to be matched to a format
+  * @constant
+  * @type {String} | regex
+  */  
+  const META_FORMAT_JSON_FILENAME_MAP = 'package.json';
 
   /**
   * scan directory and extract it's content's metadata 
