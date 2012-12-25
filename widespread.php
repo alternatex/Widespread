@@ -4,7 +4,7 @@
 * Widespread
 *
 * @author Gianni Furger
-* @version 1.0.0
+* @version 1.0.1
 * @copyright 2012 Gianni Furger <gianni.furger@gmail.com>
 * @license Released under two licenses: new BSD, and MIT. (see LICENSE)
 * @example see README.md
@@ -20,7 +20,7 @@ abstract class Widespread {
   * @constant
   * @type {String}
   */  
-  const VERSION = '1.0.0'; 
+  const VERSION = '1.0.1'; 
  
   /**
   * num o bytes to be read for metadata analysis
@@ -297,8 +297,6 @@ abstract class Widespread {
       // extract from array
       } elseif(is_array($current) && array_key_exists($segmentData, $current)) {
         $current = &$current[$segmentData];
-
-      // TODO: implement 4 real or kick
       } else {
         trigger_error("Unknown Datatype OR Property/Key Not Found", E_USER_WARNING);
       }      
@@ -311,20 +309,18 @@ abstract class Widespread {
     }
 
     // update path segment value
-    if($set!=null) $current = $set;
+    if($set!=null) $current = &$set;
 
     // create new reference and remove current (after value set!)
     if($rename!=null) {
-      // TODO: property/key existance check > already handled above, however, not that kewl yet. think.
       // assignment/removal for objects
       if(is_object($previous)) {        
-        $previous->$rename = $current;
+        $previous->$rename = &$current;
         unset($previous->$segmentData);    
       // assignment/removal for arrays    
       } elseif(is_array($previous)) {
-        $previous[$rename] = $current;
-        delete($previous[$segmentData]);
-      // TODO: implement 4 real or kick
+        $previous[$rename] = &$current;
+        unset($previous[$segmentData]);
       } else{
         trigger_error("Unknown Datatype OR Property/Key Not Found", E_USER_WARNING);
       }   
