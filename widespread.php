@@ -4,7 +4,7 @@
 * Widespread
 *
 * @author Gianni Furger
-* @version 1.0.1
+* @version 1.0.2
 * @copyright 2012 Gianni Furger <gianni.furger@gmail.com>
 * @license Released under two licenses: new BSD, and MIT. (see LICENSE)
 * @example see README.md
@@ -20,7 +20,7 @@ abstract class Widespread {
   * @constant
   * @type {String}
   */  
-  const VERSION = '1.0.1'; 
+  const VERSION = '1.0.2'; 
  
   /**
   * num o bytes to be read for metadata analysis
@@ -269,7 +269,7 @@ abstract class Widespread {
   * @return {Boolean} success or failure? TODO: ensure +++ add user_error => handle globally where appropriate? hmm.
   */  
 
-  public static function AccessSegment(&$data, $path, $set=null, $rename=null, $type=null){    
+  public static function &AccessSegment(&$data, $path, &$set=null, $rename=null, $type=null){    
 
     // bypass silly inputs
     if(!($path!='' && (is_object($data) || is_array($data) && sizeof($data)>0))) 
