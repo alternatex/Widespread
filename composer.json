@@ -1,0 +1,17 @@
+{
+    "name": "Widespread",
+    "description": "Common utilities packed together",
+    "homepage": "https://github.com/alternatex/widespread",
+    "type": "library",
+    "version": "1.0.0",
+    "license": "MIT",    
+    "authors": [
+        {
+            "name": "Gianni Furger",
+            "email": "gianni.furger@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-0": { "Widespread": "./" }
+    }
+}
