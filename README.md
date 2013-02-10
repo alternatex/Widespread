@@ -28,10 +28,11 @@ Metadata-Syntax:
 require_once('widespread.php');
 
 $metas = Widespread::FetchMetadata("examples/meta/", array(
-'Name' => 'Plugin Name',
+'Name' => 'Name',
 'Repository' => 'Repository',
-'Version' => 'Version'
-));
+'Version' => 'Version',
+'Sort' => 'Sort'
+), 'Sort');
 
 print_r($metas);
 
