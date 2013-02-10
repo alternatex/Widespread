@@ -187,14 +187,14 @@ abstract class Widespread {
     }
         
     // restore - TODO: solve w/o ugly*
-    self::$META_MANDATORY=$savesort;
+    self::$META_MANDATORY=$META_MANDATORY;
 
     // return extracted metas
     return $ctxs;
   }
 
   // helpers
-  private static function SortKeyIC($a, $b) { return strnatcasecmp($a[self::META_MANDATORY], $b[self::META_MANDATORY]); }
+  private static function SortKeyIC($a, $b) { return strnatcasecmp($a[self::$META_MANDATORY], $b[self::$META_MANDATORY]); }
 
   /**
   * extract references and gather file contents > return as array filename <> contents - TODO: > remove those suppressor's when gathering contents and/or handle w/some kind of feedback > lalalog.
