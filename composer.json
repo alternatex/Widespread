@@ -1,5 +1,5 @@
 {
-    "name": "Widespread",
+    "name": "alternatex/Widespread",
     "description": "Common utilities packed together",
     "homepage": "https://github.com/alternatex/widespread",
     "type": "library",
@@ -11,6 +11,9 @@
             "email": "gianni.furger@gmail.com"
         }
     ],    
+    "require": {
+        "php": ">=5.3.0"
+    },
     "autoload": {
         "psr-0": { "Widespread": "" }
     }
