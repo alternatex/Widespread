@@ -34,7 +34,7 @@ abstract class Widespread {
   * @constant
   * @type {Integer} 
   */
-  const META_MANDATORY = 'Name';
+  static $META_MANDATORY = 'Name';
 
   /**
   * meta field/value replacement
@@ -65,7 +65,7 @@ abstract class Widespread {
   * @param array $meta_attributes attributes to be extracted
   * @return array $metas
   */
-  public static function FetchMetadata($meta_dir = '', $meta_attributes = array('Name')) {
+  public static function FetchMetadata($meta_dir = '', $meta_attributes = array('Name'), $sortby='Name') {
 
     // return value
     $metas = array ();
@@ -137,7 +137,7 @@ abstract class Widespread {
         $data = compact(array_keys($meta_attributes));
         
         // maybe there will be no mandatory field in future: || sizeof($data)==0...
-        if(empty($data[self::META_MANDATORY])) continue;
+        if(empty($data[self::$META_MANDATORY])) continue;
 
         // determine meta path
         $path = trim(preg_replace('|/+|','/', str_replace('\\','/',$meta_file))); 
@@ -147,10 +147,50 @@ abstract class Widespread {
     }
 
     // sort list items alphabetically > - case-insensitive
-    uasort($metas, 'self::SortKeyIC');
+    ($sort=array_keys($metas)) && sort($sort) && $_metas=array();
+    
+    // backup current
+    $META_MANDATORY = self::$META_MANDATORY;
+    
+    // set current to param
+    self::$META_MANDATORY=$sortby;
+    
+    // context storage
+    $ctxs=array();
+
+    // iterate keys
+    foreach($sort as $sortkey){
+      
+      // get context
+      $ctx=explode('/', $sortkey);
+      
+      // set default
+      if(sizeof($ctx)==1) 
+        $ctx[0] = 'root';
+      
+      // create context if not exists
+      if(!array_key_exists($ctx[0], $ctxs)) 
+        $ctxs[$ctx[0]]=array(); 
+      
+      // store within context
+      $ctxs[$ctx[0]][]=$metas[$sortkey];
+    }
+
+    // iterate contexts
+    foreach($ctxs as $ctxid => $ctx) {
+
+      // sort context by value
+      uasort($ctx, 'self::SortKeyIC');
+
+      // ensure xxx
+      $ctxs[$ctxid]=$ctx;
+    }
+        
+    // restore - TODO: solve w/o ugly*
+    self::$META_MANDATORY=$savesort;
 
     // return extracted metas
-    return $metas;
+    return $ctxs;
   }
 
   // helpers
@@ -188,7 +228,7 @@ abstract class Widespread {
     $template = ($template==='') ? (@file_get_contents($filename, FILE_USE_INCLUDE_PATH)) : $template;
 
     // store partials content
-    $partials = $bucket[$filename] = $template; //str_replace(array("\n", "\t"), "", $template);       
+    $partials = $bucket[$filename] = $template;
 
     // look out for partials
     while (preg_match(self::PARTIAL_REF, $template, $matches, PREG_OFFSET_CAPTURE)) {
@@ -297,6 +337,8 @@ abstract class Widespread {
       // extract from array
       } elseif(is_array($current) && array_key_exists($segmentData, $current)) {
         $current = &$current[$segmentData];
+
+      // handle the unwanted - tbi *
       } else {
         trigger_error("Unknown Datatype OR Property/Key Not Found", E_USER_WARNING);
       }      
@@ -305,7 +347,9 @@ abstract class Widespread {
 
     // enforce datatype?
     if($type!=null) {
-      // check and process ^^
+
+      // check and process
+      // ... type cast ? think. ...
     }
 
     // update path segment value
@@ -313,14 +357,18 @@ abstract class Widespread {
 
     // create new reference and remove current (after value set!)
     if($rename!=null) {
+
       // assignment/removal for objects
       if(is_object($previous)) {        
         $previous->$rename = &$current;
         unset($previous->$segmentData);    
+      
       // assignment/removal for arrays    
       } elseif(is_array($previous)) {
         $previous[$rename] = &$current;
         unset($previous[$segmentData]);
+      
+      // handle the unwanted - tbi *
       } else{
         trigger_error("Unknown Datatype OR Property/Key Not Found", E_USER_WARNING);
       }   

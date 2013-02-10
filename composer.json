@@ -10,5 +10,8 @@
             "name": "Gianni Furger",
             "email": "gianni.furger@gmail.com"
         }
-    ]
+    ],    
+    "autoload": {
+        "psr-0": { "Widespread": "/" }
+    },
 }
