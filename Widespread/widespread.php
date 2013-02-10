@@ -3,38 +3,36 @@
 /**
 * Widespread
 *
+* Common utilities packed together
+*
 * @author Gianni Furger
-* @version 1.0.2
-* @copyright 2012 Gianni Furger <gianni.furger@gmail.com>
+* @version 1.1.0
+* @copyright 2012-2013 Gianni Furger <gianni.furger@gmail.com>
 * @license Released under two licenses: new BSD, and MIT. (see LICENSE)
 * @example see README.md
-* 
-* Just a bunch o common utilities packed together
-*
 */
 
 abstract class Widespread {
 
   /**
-  * this file's version
   * @constant
   * @type {String}
   */  
-  const VERSION = '1.0.2'; 
+  const VERSION = '1.1.0'; 
  
   /**
-  * num o bytes to be read for metadata analysis
+  * number of bytes to be read for metadata analysis
   * @constant
   * @type {Integer} 
   */  
   const META_BYTES = 4096;
 
   /**
-  * mandatory field for file inclusion in result set TODO: should be kinda more flexible ^^
+  * mandatory field for file inclusion in result set
   * @constant
   * @type {Integer} 
   */
-  static $META_MANDATORY = 'Name';
+  const META_MANDATORY = 'Name';
 
   /**
   * meta field/value replacement
@@ -51,150 +49,265 @@ abstract class Widespread {
   const PARTIAL_REF = '/{{(>)(.+?)\\1?}}+/s';
 
   /**
-  * TODO: solve properly - comma separated list of filenames to be matched to a format
-  * @constant
-  * @type {String} | regex
-  */  
-  const META_FORMAT_JSON_FILENAME_MAP = 'package.json';
-
-  /**
   * scan directory and extract it's content's metadata 
-  *
+  *  
   * @static 
   * @param string $meta_dir root-directory to scan from
   * @param array $meta_attributes attributes to be extracted
-  * @return array $metas
-  */
-  public static function FetchMetadata($meta_dir = '', $meta_attributes = array('Name'), $sortby='Name') {
+  * @return array $metas 
+  * @example examples/meta.php
+  *
+  * <code> 
+  * <?php
+  *   // ...
+  *   $data = Widespread::FetchMetadata(
+  *
+  *     // path to entity
+  *     'contents/members/', 
+  *
+  *     // properties to extract
+  *     array('UUID', 'Name', 'Repository', 'Version', 'Sort', 'Status'),
+  *
+  *     // sort by field
+  *     'Sort', 
+  *
+  *     // sort ascending
+  *     false,
+  *
+  *     // filters to apply
+  *     array(
+  *
+  *       // published only
+  *       'Status' => array(array('EQ', 'Published')),
+  *
+  *       // restrict by name
+  *       'Name' => array(array('IN', array('XXX2')),array('EX', array('XXX'))), 
+  * 
+  *       // restrict by age
+  *       'Sort'  => array(array('LT', 1000), array('GT', 0))
+  *     )
+  *   );
+  * ?> 
+  * </code>  
+  */  
 
-    // return value
-    $metas = array ();
+  public static function FetchMetadata($meta_dir = '', $meta_attributes = array(self::META_MANDATORY), $sortby=self::META_MANDATORY, $sortasc=true, $filters=array(), $docache=true, $force=false, $meta_mandatory=self::META_MANDATORY, $meta_bytes=self::META_BYTES) {
+    
+    // ...
+    static $cache=array();
 
-    // helpers/files
-    $metas_resources = array();
+    // scan directory if not cached or forced
+    if($force || !array_key_exists($meta_dir, $cache)) {
 
-    // heplers/directory    
-    $metas_dir = $meta_dir;
-    $metas_dir_handle = opendir( $metas_dir); 
+      // return value
+      $metas = array ();
 
-    // TODO: define stack for unlimited crawling? > wich then should be limitable to a certain level back again ;)
+      // helpers/files
+      $metas_resources = array();
 
-    // gather top-level / 1st-level
-    while (($file = @ readdir( $metas_dir_handle ) ) !== false && $file!='') { 
+      // heplers/directory    
+      $metas_dir = $meta_dir;
+      $metas_dir_handle = opendir( $metas_dir); 
 
-      // self-skip       
-      if($file=='.') continue;
+      // apply defaults
+      if(array_key_exists(0, $meta_attributes)) {
+        
+        // attributes helper
+        $meta_attributesx = array();
+        
+        // assign default key = value
+        foreach($meta_attributes as $meta_attribute) $meta_attributesx[$meta_attribute]=$meta_attribute;
+        
+        // assign & free
+        $meta_attributes=$meta_attributesx; unset($meta_attributesx);
+      }    
 
-        // process directory
-      if ( is_dir( $metas_dir.'/'.$file ) ) {    
+      /* 
+      TODO: 
+        - allow multiline string values
+        - define stack for unlimited crawling? > wich then should be limitable to a certain level back again ;)
+      */
+
+      // gather top-level / 1st-level
+      while (($file = @ readdir( $metas_dir_handle ) ) !== false && $file!='') { 
+
+        // self-skip       
+        if($file=='.' || $file=='..') continue;
+
+          // process directory
+        if ( is_dir( $metas_dir.'/'.$file ) ) {    
 
           // get handle
-             $metas_subdir_handle = @ opendir( $metas_dir.'/'.$file );
+          $metas_subdir_handle = @ opendir( $metas_dir.'/'.$file );
+
+          // process sub-directory
+          while ($metas_subdir_handle && ($subfile = readdir( $metas_subdir_handle ) ) !== false ) {
+
+            // push all (4 now)
+            $metas_resources[] = "$file/$subfile";
+          }    
           
-             // process sub-directory
-             while ($metas_subdir_handle && ($subfile = readdir( $metas_subdir_handle ) ) !== false ) {
-
-              // push all 4 now
-              $metas_resources[] = "$file/$subfile";
-         }    
-        
           // release handle
-        closedir( $metas_subdir_handle );
-        
-      // process file   
-      } else { 
-       
-        // push all 4 now
-        $metas_resources[] = $file; 
-           
-      }
-    }
-
-    // release handle
-    closedir( $metas_dir_handle );
-
-    // process matched files
-    foreach ( $metas_resources as $meta_file ) {
-
-    // build full path
-    $meta_file_path = "$metas_dir/$meta_file";
-      
-    // check if accessible
-    if ( !is_readable( $meta_file_path ) ) continue;    
-
-        // gather partial for metadata inspection
-        $fp = fopen( $meta_file_path, 'r' );
-        $data = fread( $fp, self::META_BYTES); 
-        fclose( $fp );
-      
-        // extract meta attributes
-        foreach ( $meta_attributes as $field => $regex ) {
-          preg_match( '/^[ \t\/*#@]*' . preg_quote( $regex, '/' ) . ':(.*)$/mi', $data, ${$field}); // backref
-          ${$field} = !empty( ${$field}) ? trim(preg_replace(self::META_FIELD, '', ${$field}[1])) : '';
+          closedir( $metas_subdir_handle );
+          
+        // process file   
+        } else { 
+         
+          // push all 4 now
+          $metas_resources[] = $file; 
         }
+      }
 
-        // flatten
-        $data = compact(array_keys($meta_attributes));
+      // release handle
+      closedir( $metas_dir_handle );
+
+      // process matched files
+      foreach ( $metas_resources as $meta_file ) {
+
+      // build full path
+      $meta_file_path = "$metas_dir/$meta_file";
         
-        // maybe there will be no mandatory field in future: || sizeof($data)==0...
-        if(empty($data[self::$META_MANDATORY])) continue;
+      // check if accessible
+      if ( !is_readable( $meta_file_path ) ) continue;    
 
-        // determine meta path
-        $path = trim(preg_replace('|/+|','/', str_replace('\\','/',$meta_file))); 
+          // gather partial for metadata inspection
+          $fp = fopen( $meta_file_path, 'r' );
+          $data = fread( $fp, $meta_bytes); 
+          fclose( $fp );
+        
+          // extract meta attributes
+          foreach ( $meta_attributes as $field => $regex ) {
+            preg_match( '/^[ \t\/*#@]*' . preg_quote( $regex, '/' ) . ':(.*)$/mi', $data, ${$field}); // backref
+            ${$field} = !empty( ${$field}) ? trim(preg_replace(self::META_FIELD, '', ${$field}[1])) : '';
+          }
 
-        // add meta w/data to list
-        $metas[$path] = $data;
+          // flatten
+          $data = compact(array_keys($meta_attributes));
+          
+          // maybe there will be no mandatory field in future: || sizeof($data)==0...
+          if(empty($data[$meta_mandatory])) continue;
+
+          // determine meta path
+          $path = trim(preg_replace('|/+|','/', str_replace('\\','/',$meta_file))); 
+
+          // add meta w/data to list
+          $metas[$path] = $data;
+      }
+
+      // sort list items alphabetically > - case-insensitive
+      ($sort=array_keys($metas)) && sort($sort) && $_metas=array();
+      
+      // context storage
+      $ctxs=array();
+
+      // contextualize
+      foreach($sort as $sortkey){
+
+        // get context
+        $ctx=array_pop(array_slice(explode('/', $meta_dir), 1, 1));
+        
+        // create context if not exists
+        if(!array_key_exists($ctx, $ctxs)) $ctxs[$ctx]=array(); 
+        
+        // store within context
+        $ctxs[$ctx][]=$metas[$sortkey];
+      }
+
+    } else {
+
+      // retrieve from cache
+      $ctxs=$cache[$meta_dir];
     }
 
-    // sort list items alphabetically > - case-insensitive
-    ($sort=array_keys($metas)) && sort($sort) && $_metas=array();
-    
-    // backup current
-    $META_MANDATORY = self::$META_MANDATORY;
-    
-    // set current to param
-    self::$META_MANDATORY=$sortby;
-    
-    // context storage
-    $ctxs=array();
+    // do cache if requested
+    if($docache) $cache[$meta_dir]=$ctxs;
 
-    // iterate keys
-    foreach($sort as $sortkey){
-      
-      // get context
-      $ctx=explode('/', $sortkey);
-      
-      // set default
-      if(sizeof($ctx)==1) 
-        $ctx[0] = 'root';
-      
-      // create context if not exists
-      if(!array_key_exists($ctx[0], $ctxs)) 
-        $ctxs[$ctx[0]]=array(); 
-      
-      // store within context
-      $ctxs[$ctx[0]][]=$metas[$sortkey];
-    }
-
+    // create sort func for 
+    $sortfunc = create_function('$a,$b', 'return strnatcasecmp($a["'.$sortby.'"], $b["'.$sortby.'"]);');
+    
     // iterate contexts
     foreach($ctxs as $ctxid => $ctx) {
 
+      // temp helper holding entities matching filters
+      $filtered=array();
+
+      // ...
+      foreach($ctx as $item) {
+          
+        // flag as match by default
+        $ismatch=true;
+
+        // process filters
+        foreach($filters as $filter => $rules) {
+      
+          // existance check
+          if(!isset($item[$filter])) continue;
+          
+          // extract
+          $candidate = $item[$filter];
+
+          // process rules
+          foreach($rules as $rule) {
+            
+            // extract operand
+            $operand = $rule[0];
+
+            // extract against
+            $against = $rule[1];
+
+            // validate rule
+            switch($operand) {
+              case 'EQ':
+                $ismatch=($candidate===$against);
+                break;
+              case 'NOT': 
+                $ismatch=($candidate!==$against);
+                break;
+              case 'GT':
+                $ismatch=(intval($candidate)>intval($against));
+                break;
+              case 'LT':
+                $ismatch=(intval($candidate)<intval($against));
+                break;
+              case 'IN':
+                $ismatch=in_array($candidate, $against);
+                break;
+              case 'EX':
+                $ismatch=!in_array($candidate, $against);
+                break;
+              default:
+                trigger_error("Unknown operand: \"$operand\"", E_USER_WARNING);
+                break;
+            }
+            
+            // skip item on mismatch (AND-selector)
+            if(!$ismatch) break;          
+          }          
+
+          // skip item on mismatch (AND-selector)
+          if(!$ismatch) break;  
+        }
+        
+        // store match
+        if($ismatch) $filtered[]=$item;
+      }
+
+      // apply filtered
+      if(sizeof($filters)>0) $ctx=$filtered;        
+
       // sort context by value
-      uasort($ctx, 'self::SortKeyIC');
+      uasort($ctx, $sortfunc);
+
+      // apply sort direction (defaults to ascending)
+      if(!$sortasc) $ctx=array_reverse($ctx);
 
       // ensure xxx
       $ctxs[$ctxid]=$ctx;
     }
-        
-    // restore - TODO: solve w/o ugly*
-    self::$META_MANDATORY=$META_MANDATORY;
 
-    // return extracted metas
+    // return extracted *
     return $ctxs;
   }
-
-  // helpers
-  private static function SortKeyIC($a, $b) { return strnatcasecmp($a[self::$META_MANDATORY], $b[self::$META_MANDATORY]); }
 
   /**
   * extract references and gather file contents > return as array filename <> contents - TODO: > remove those suppressor's when gathering contents and/or handle w/some kind of feedback > lalalog.
@@ -342,15 +455,10 @@ abstract class Widespread {
       } else {
         trigger_error("Unknown Datatype OR Property/Key Not Found", E_USER_WARNING);
       }      
-
     }
 
     // enforce datatype?
-    if($type!=null) {
-
-      // check and process
-      // ... type cast ? think. ...
-    }
+    if($type!=null) { /* check and process ... type cast ? think. ... */ }
 
     // update path segment value
     if($set!=null) $current = &$set;
@@ -376,6 +484,4 @@ abstract class Widespread {
 
     return $current;
   }  
-
 }
-?>
