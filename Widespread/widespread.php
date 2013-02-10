@@ -6,7 +6,7 @@
 * Common utilities packed together
 *
 * @author Gianni Furger
-* @version 1.1.0
+* @version 1.1.1
 * @copyright 2012-2013 Gianni Furger <gianni.furger@gmail.com>
 * @license Released under two licenses: new BSD, and MIT. (see LICENSE)
 * @example see README.md
@@ -18,7 +18,7 @@ abstract class Widespread {
   * @constant
   * @type {String}
   */  
-  const VERSION = '1.1.0'; 
+  const VERSION = '1.1.1'; 
  
   /**
   * number of bytes to be read for metadata analysis
@@ -28,13 +28,15 @@ abstract class Widespread {
   const META_BYTES = 4096;
 
   /**
-  * mandatory field for file inclusion in result set
+  * default mandatory field for file inclusion in result set
   * @constant
   * @type {Integer} 
   */
   const META_MANDATORY = 'Name';
 
   /**
+  * TODO: enhance » multiline-strings
+  *
   * meta field/value replacement
   * @constant
   * @type {String} | regex
@@ -122,12 +124,6 @@ abstract class Widespread {
         $meta_attributes=$meta_attributesx; unset($meta_attributesx);
       }    
 
-      /* 
-      TODO: 
-        - allow multiline string values
-        - define stack for unlimited crawling? > wich then should be limitable to a certain level back again ;)
-      */
-
       // gather top-level / 1st-level
       while (($file = @ readdir( $metas_dir_handle ) ) !== false && $file!='') { 
 
@@ -162,13 +158,13 @@ abstract class Widespread {
       closedir( $metas_dir_handle );
 
       // process matched files
-      foreach ( $metas_resources as $meta_file ) {
+      foreach($metas_resources as $meta_file) {
 
       // build full path
       $meta_file_path = "$metas_dir/$meta_file";
         
       // check if accessible
-      if ( !is_readable( $meta_file_path ) ) continue;    
+      if (!is_readable($meta_file_path)) continue;    
 
           // gather partial for metadata inspection
           $fp = fopen( $meta_file_path, 'r' );
@@ -176,7 +172,7 @@ abstract class Widespread {
           fclose( $fp );
         
           // extract meta attributes
-          foreach ( $meta_attributes as $field => $regex ) {
+          foreach($meta_attributes as $field => $regex) {
             preg_match( '/^[ \t\/*#@]*' . preg_quote( $regex, '/' ) . ':(.*)$/mi', $data, ${$field}); // backref
             ${$field} = !empty( ${$field}) ? trim(preg_replace(self::META_FIELD, '', ${$field}[1])) : '';
           }
@@ -241,7 +237,7 @@ abstract class Widespread {
         foreach($filters as $filter => $rules) {
       
           // existance check
-          if(!isset($item[$filter])) continue;
+          if(!isset($item[$filter])) { $ismatch=false; break; }
           
           // extract
           $candidate = $item[$filter];
