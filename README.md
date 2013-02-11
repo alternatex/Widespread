@@ -10,31 +10,68 @@ PHP 5.3
 Installation 
 -------------
 
-**Fetch sources** [https://github.com/alternatex/widespread/archive/master.zip](https://github.com/alternatex/widespread/archive/master.zip)
+Install through composer:
 
-**Extract to** &lt;your-webroot-here&gt;
+`composer install`
 
-Metadata Extraction
--------------
+or fetch tarball from: 
+
+[https://github.com/alternatex/widespread/archive/master.zip](https://github.com/alternatex/widespread/archive/master.zip)
+
+General
+-------------------
+
+Load dependencies through composer autoloader:
+
+```php
+<?php
+// ...
+require_once('vendor/autoload.php');
+
+// ...
+use Widespread\Widespread as Widespread;
+
+?>
+```
+
+Metadata-Extraction
+-------------------
 
 Extract metadata from file "header" (read first 4096 bytes)
 
 Metadata-Syntax:
 
 ```php
+<?php 
 
-<?php namespace Widespread;
+// ...
+$data = Widespread::FetchMetadata(
 
-require_once('widespread.php');
+  // path to entity
+  'contents/members/', 
 
-$metas = Widespread::FetchMetadata("examples/meta/", array(
-'Name' => 'Name',
-'Repository' => 'Repository',
-'Version' => 'Version',
-'Sort' => 'Sort'
-), 'Sort');
+  // properties to extract
+  array('UUID', 'Name', 'Repository', 'Version', 'Sort', 'Status', 'Type'),
 
-print_r($metas);
+  // sort by field
+  'Sort', 
+
+  // sort ascending
+  true,
+
+  // filters to apply
+  array(
+
+    // published only
+    'Status' => array(array('EQ', 'Published')),
+
+    // restrict by name
+    'Name' => array(array('IN', array('XXX2')),array('EX', array('XXX'))),  
+
+    // restrict by age
+    'Sort'  => array(array('LT', 1250), array('LT', 1050) , array('GT', 0), array('GT', 750))
+  )
+);
 
 ?>
 ```
@@ -43,6 +80,25 @@ Templating
 -------------
 
 Gather templates w/partials and merge w/data
+
+Partials-Syntax:
+
+```php
+<?php 
+
+// ...
+$buckets = $options = $widgets = array();
+
+// ...
+$template = '
+	{{>/templates/body}}
+';
+
+// fetch partials
+Widespread::FetchPartials($buckets, $options, $widgets, 'index.html', $template);
+
+?>
+```
 
 License
 -------------
