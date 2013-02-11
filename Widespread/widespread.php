@@ -51,16 +51,11 @@ abstract class Widespread {
   const PARTIAL_REF = '/{{(>)(.+?)\\1?}}+/s';
 
   /**
-  * scan directory and extract it's content's metadata 
-  *  
-  * @static 
-  * @param string $meta_dir root-directory to scan from
-  * @param array $meta_attributes attributes to be extracted
-  * @return array $metas 
-  * @example examples/meta.php
+  * scan directory and extract it's content's metadata  
   *
   * <code> 
   * <?php
+  *
   *   // ...
   *   $data = Widespread::FetchMetadata(
   *
@@ -90,7 +85,13 @@ abstract class Widespread {
   *     )
   *   );
   * ?> 
-  * </code>  
+  * </code> 
+  *  
+  * @static 
+  * @param string $meta_dir root-directory to scan from
+  * @param array $meta_attributes attributes to be extracted
+  * @return array $metas 
+  * @example ./ 
   */  
 
   public static function FetchMetadata($meta_dir = '', $meta_attributes = array(self::META_MANDATORY), $sortby=self::META_MANDATORY, $sortasc=true, $filters=array(), $docache=true, $force=false, $meta_mandatory=self::META_MANDATORY, $meta_bytes=self::META_BYTES) {
@@ -160,38 +161,42 @@ abstract class Widespread {
       // process matched files
       foreach($metas_resources as $meta_file) {
 
-      // build full path
-      $meta_file_path = "$metas_dir/$meta_file";
-        
-      // check if accessible
-      if (!is_readable($meta_file_path)) continue;    
-
-          // gather partial for metadata inspection
-          $fp = fopen( $meta_file_path, 'r' );
-          $data = fread( $fp, $meta_bytes); 
-          fclose( $fp );
-        
-          // extract meta attributes
-          foreach($meta_attributes as $field => $regex) {
-            preg_match( '/^[ \t\/*#@]*' . preg_quote( $regex, '/' ) . ':(.*)$/mi', $data, ${$field}); // backref
-            ${$field} = !empty( ${$field}) ? trim(preg_replace(self::META_FIELD, '', ${$field}[1])) : '';
-          }
-
-          // flatten
-          $data = compact(array_keys($meta_attributes));
+        // build full path
+        if(substr($metas_dir, -1, 1)=='/') $metas_dir=substr($metas_dir, 0, strlen($metas_dir)-1);
+        $meta_file_path = "$metas_dir/$meta_file";
           
-          // maybe there will be no mandatory field in future: || sizeof($data)==0...
-          if(empty($data[$meta_mandatory])) continue;
+        // check if accessible
+        if (!is_readable($meta_file_path)) continue;    
 
-          // determine meta path
-          $path = trim(preg_replace('|/+|','/', str_replace('\\','/',$meta_file))); 
+        // gather partial for metadata inspection
+        $fp = fopen( $meta_file_path, 'r' );
+        $data = fread( $fp, $meta_bytes); 
+        fclose( $fp );
+      
+        // extract meta attributes
+        foreach($meta_attributes as $field => $regex) {
+          preg_match( '/^[ \t\/*#@]*' . preg_quote( $regex, '/' ) . ':(.*)$/mi', $data, ${$field}); // backref
+          ${$field} = !empty( ${$field}) ? trim(preg_replace(self::META_FIELD, '', ${$field}[1])) : '';
+        }
 
-          // add meta w/data to list
-          $metas[$path] = $data;
+        // flatten
+        $data = compact(array_keys($meta_attributes));
+        
+        // ...
+        $data['Filepath'] = $meta_file_path;
+
+        // maybe there will be no mandatory field in future: || sizeof($data)==0...
+        if(empty($data[$meta_mandatory])) continue;
+
+        // determine meta path
+        $path = trim(preg_replace('|/+|','/', str_replace('\\','/',$meta_file))); 
+
+        // add meta w/data to list
+        $metas[$path] = $data;
       }
 
       // sort list items alphabetically > - case-insensitive
-      ($sort=array_keys($metas)) && sort($sort) && $_metas=array();
+      ($sort=array_keys($metas)) && sort($sort);
       
       // context storage
       $ctxs=array();
@@ -215,10 +220,13 @@ abstract class Widespread {
       $ctxs=$cache[$meta_dir];
     }
 
+    // free mem
+    unset($metas);
+
     // do cache if requested
     if($docache) $cache[$meta_dir]=$ctxs;
 
-    // create sort func for 
+    // create sort fnc 
     $sortfunc = create_function('$a,$b', 'return strnatcasecmp($a["'.$sortby.'"], $b["'.$sortby.'"]);');
     
     // iterate contexts
@@ -297,7 +305,7 @@ abstract class Widespread {
       // apply sort direction (defaults to ascending)
       if(!$sortasc) $ctx=array_reverse($ctx);
 
-      // ensure xxx
+      // (re-)attach
       $ctxs[$ctxid]=$ctx;
     }
 
@@ -420,6 +428,9 @@ abstract class Widespread {
 
   public static function &AccessSegment(&$data, $path, &$set=null, $rename=null, $type=null){    
 
+    // ...
+    static $MESSAGE_ERROR_ACCESS = "Unknown Datatype | Property/Key Not Found";
+
     // bypass silly inputs
     if(!($path!='' && (is_object($data) || is_array($data) && sizeof($data)>0))) 
       return ;
@@ -449,7 +460,7 @@ abstract class Widespread {
 
       // handle the unwanted - tbi *
       } else {
-        trigger_error("Unknown Datatype OR Property/Key Not Found", E_USER_WARNING);
+        trigger_error($MESSAGE_ERROR_ACCESS, E_USER_WARNING);
       }      
     }
 
@@ -474,7 +485,7 @@ abstract class Widespread {
       
       // handle the unwanted - tbi *
       } else{
-        trigger_error("Unknown Datatype OR Property/Key Not Found", E_USER_WARNING);
+        trigger_error($MESSAGE_ERROR_ACCESS, E_USER_WARNING);
       }   
     }
 

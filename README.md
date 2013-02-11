@@ -51,25 +51,33 @@ $data = Widespread::FetchMetadata(
   'contents/members/', 
 
   // properties to extract
-  array('UUID', 'Name', 'Repository', 'Version', 'Sort', 'Status', 'Type'),
+  array('UUID', 'Name', 'Repository', 'Version', 'Sort', 'Status'),
 
   // sort by field
   'Sort', 
 
   // sort ascending
-  true,
+  false,
 
   // filters to apply
   array(
 
     // published only
-    'Status' => array(array('EQ', 'Published')),
+    'Status' => array(
+      array('NOT', 'Published')
+    ),
 
     // restrict by name
-    'Name' => array(array('IN', array('XXX2')),array('EX', array('XXX'))),  
+    'Name' => array(
+      array('IN', array('XXX', 'XXX4')),
+      array('EX', array('XXX2'))
+    ),  
 
     // restrict by age
-    'Sort'  => array(array('LT', 1250), array('LT', 1050) , array('GT', 0), array('GT', 750))
+    'Sort'  => array(
+      array('LT', 1000), 
+      array('GT', 200)
+    )
   )
 );
 
