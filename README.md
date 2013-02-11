@@ -10,13 +10,7 @@ PHP 5.3
 Installation 
 -------------
 
-Install through composer:
-
-`composer install`
-
-or fetch tarball from: 
-
-[https://github.com/alternatex/widespread/archive/master.zip](https://github.com/alternatex/widespread/archive/master.zip)
+Install through composer `composer require 'alternatex/widespread:*'` (requires existing composer.json)
 
 General
 -------------------
@@ -38,8 +32,6 @@ Metadata-Extraction
 -------------------
 
 Extract metadata from file "header" (read first 4096 bytes)
-
-Metadata-Syntax:
 
 ```php
 <?php 
@@ -88,8 +80,6 @@ Templating
 -------------
 
 Gather templates w/partials and merge w/data
-
-Partials-Syntax:
 
 ```php
 <?php 
