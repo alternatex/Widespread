@@ -183,7 +183,7 @@ abstract class Widespread {
         $data = compact(array_keys($meta_attributes));
         
         // ...
-        $data['Filepath'] = $meta_file_path;
+        $data['Path'] = $meta_file_path;
 
         // maybe there will be no mandatory field in future: || sizeof($data)==0...
         if(empty($data[$meta_mandatory])) continue;

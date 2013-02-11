@@ -10,7 +10,9 @@ PHP 5.3
 Installation 
 -------------
 
-Install through composer `composer require 'alternatex/widespread:*'` (requires existing composer.json)
+Install through composer `composer require 'alternatex/widespread:*'`
+
+See: https://packagist.org/packages/alternatex/widespread
 
 General
 -------------------
@@ -31,7 +33,7 @@ use Widespread\Widespread as Widespread;
 Metadata-Extraction
 -------------------
 
-Extract metadata from file "header" (read first 4096 bytes)
+Extract metadata from file "header" (defaults to first 4096 bytes)
 
 ```php
 <?php 
