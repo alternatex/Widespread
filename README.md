@@ -33,7 +33,7 @@ use Widespread\Widespread as Widespread;
 Metadata-Extraction
 -------------------
 
-Extract metadata from file "header" (defaults to first 4096 bytes)
+Extract metadata from file header (defaults to first 4096 bytes)
 
 ```php
 <?php 
@@ -91,11 +91,47 @@ $buckets = $options = $widgets = array();
 
 // ...
 $template = '
-	{{>/templates/body}}
+  {{>/templates/body}}
 ';
 
 // fetch partials
 Widespread::FetchPartials($buckets, $options, $widgets, 'index.html', $template);
+
+?>
+```
+
+Convenience
+-------------
+
+Gather templates w/partials and merge w/data
+
+```php
+<?php 
+
+// ...
+$data = array(
+  '...',
+  '...',
+  '...'
+);
+
+// default access
+$segment_a = &Widespread::AccessSegment($data, 'path.to.prop.where.ever');
+
+// custom delimiter
+$segment_b = &Widespread::AccessSegment($data, 'path/to/prop/where/ever', null, null, null, '/');
+
+// ...
+$segment_a = 'test';
+
+// ...
+echo $data['path']->to['prop']['where']->ever;
+
+// ...
+$segment_b = 'test2';
+
+// ...
+echo $data['path']->to['prop']['where']->ever;
 
 ?>
 ```

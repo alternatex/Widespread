@@ -6,7 +6,7 @@
 * Common utilities packed together
 *
 * @author Gianni Furger
-* @version 1.1.1
+* @version 1.2.0
 * @copyright 2012-2013 Gianni Furger <gianni.furger@gmail.com>
 * @license Released under two licenses: new BSD, and MIT. (see LICENSE)
 * @example see README.md
@@ -18,7 +18,7 @@ abstract class Widespread {
   * @constant
   * @type {String}
   */  
-  const VERSION = '1.1.1'; 
+  const VERSION = '1.2.0'; 
  
   /**
   * number of bytes to be read for metadata analysis
@@ -44,11 +44,32 @@ abstract class Widespread {
   const META_FIELD = '/\s*(?:\*\/|\?>).*/';
 
   /**
+  * file mime type «text/plain»
+  * @constant
+  * @type {String} 
+  */
+  const META_FORMAT_TEXT = 'text';
+  
+  /**
+  * file mime type «application/json»
+  * @constant
+  * @type {String} 
+  */
+  const META_FORMAT_JSON = 'json';
+
+  /**
   * gather partial references
   * @constant
   * @type {String} | regex
   */  
   const PARTIAL_REF = '/{{(>)(.+?)\\1?}}+/s';
+
+  /**
+  * default access path delimiter
+  * @constant
+  * @type {String}
+  */  
+  const ACCESS_PATH_DELIM = '.';
 
   /**
   * scan directory and extract it's content's metadata  
@@ -94,7 +115,7 @@ abstract class Widespread {
   * @example ./ 
   */  
 
-  public static function FetchMetadata($meta_dir = '', $meta_attributes = array(self::META_MANDATORY), $sortby=self::META_MANDATORY, $sortasc=true, $filters=array(), $docache=true, $force=false, $meta_mandatory=self::META_MANDATORY, $meta_bytes=self::META_BYTES) {
+  public static function FetchMetadata($meta_dir = '', $meta_attributes = array(self::META_MANDATORY), $sortby=self::META_MANDATORY, $sortasc=true, $filters=array(), $docache=true, $force=false, $meta_mandatory=self::META_MANDATORY, $meta_bytes=self::META_BYTES, $meta_format=self::META_FORMAT_TEXT) {
     
     // ...
     static $cache=array();
@@ -167,6 +188,8 @@ abstract class Widespread {
           
         // check if accessible
         if (!is_readable($meta_file_path)) continue;    
+
+        // TODO: $meta_format == 'JSON' VS. $meta_format == 'TEXT'
 
         // gather partial for metadata inspection
         $fp = fopen( $meta_file_path, 'r' );
@@ -266,6 +289,12 @@ abstract class Widespread {
                 break;
               case 'NOT': 
                 $ismatch=($candidate!==$against);
+                break;
+              case 'CI':
+                $ismatch=(stripos($against, $candidate)!==false); 
+                break;
+              case 'CS':
+                $ismatch=(strpos($against, $candidate)!==false); 
                 break;
               case 'GT':
                 $ismatch=(intval($candidate)>intval($against));
@@ -426,7 +455,7 @@ abstract class Widespread {
   * @return {Boolean} success or failure? TODO: ensure +++ add user_error => handle globally where appropriate? hmm.
   */  
 
-  public static function &AccessSegment(&$data, $path, &$set=null, $rename=null, $type=null){    
+  public static function &AccessSegment(&$data, $path, &$set=null, $rename=null, $type=null, $separator=self::ACCESS_PATH_DELIM){    
 
     // ...
     static $MESSAGE_ERROR_ACCESS = "Unknown Datatype | Property/Key Not Found";
@@ -436,7 +465,7 @@ abstract class Widespread {
       return ;
     
     // extract segments
-    $segments = explode('.', $path);
+    $segments = explode($separator, $path);
     
     // helpers
     $previous = null;    
