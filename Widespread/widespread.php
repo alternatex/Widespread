@@ -6,7 +6,7 @@
 * Common utilities packed together
 *
 * @author Gianni Furger
-* @version 1.2.0
+* @version 1.2.1
 * @copyright 2012-2013 Gianni Furger <gianni.furger@gmail.com>
 * @license Released under two licenses: new BSD, and MIT. (see LICENSE)
 * @example see README.md
@@ -18,7 +18,7 @@ abstract class Widespread {
   * @constant
   * @type {String}
   */  
-  const VERSION = '1.2.0'; 
+  const VERSION = '1.2.1'; 
  
   /**
   * number of bytes to be read for metadata analysis
@@ -291,11 +291,11 @@ abstract class Widespread {
                 $ismatch=($candidate!==$against);
                 break;
               case 'CI':
-                $ismatch=(stripos($against, $candidate)!==false); 
+                $ismatch=(stripos($candidate, $against)!==false); 
                 break;
               case 'CS':
-                $ismatch=(strpos($against, $candidate)!==false); 
-                break;
+                $ismatch=(strpos($candidate, $against)!==false); 
+                break;                    
               case 'GT':
                 $ismatch=(intval($candidate)>intval($against));
                 break;
