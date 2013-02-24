@@ -1,0 +1,6 @@
+Plugin Name: Advanced Code Editor
+Plugin URI: http://en.bainternet.info
+Description: Enables syntax highlighting in the integrated themes and plugins source code editors with line numbers, AutoComplete and much more. Supports PHP, HTML, CSS and JS.
+Version: 2.2.333
+Author: BaInternet
+Author URI: http://en.bainternet.info

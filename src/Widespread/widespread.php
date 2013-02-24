@@ -189,6 +189,19 @@ abstract class Widespread {
         // check if accessible
         if (!is_readable($meta_file_path)) continue;    
 
+        switch($meta_format) {
+          case self::META_FORMAT_JSON:
+            break;
+          case self::META_FORMAT_TEXT:
+          default:
+            break;
+        }
+        
+        if($meta_format==self::META_FORMAT_JSON) {
+
+        } elseif {
+
+        }
         // TODO: $meta_format == 'JSON' VS. $meta_format == 'TEXT'
 
         // gather partial for metadata inspection
