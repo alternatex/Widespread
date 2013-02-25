@@ -6,7 +6,7 @@
 * Common utilities packed together
 *
 * @author Gianni Furger
-* @version 1.2.1
+* @version 2.0.0
 * @copyright 2012-2013 Gianni Furger <gianni.furger@gmail.com>
 * @license Released under two licenses: new BSD, and MIT. (see LICENSE)
 * @example see README.md
@@ -18,7 +18,7 @@ abstract class Widespread {
   * @constant
   * @type {String}
   */  
-  const VERSION = '1.2.1'; 
+  const VERSION = '2.0.0'; 
  
   /**
   * number of bytes to be read for metadata analysis
@@ -115,10 +115,22 @@ abstract class Widespread {
   * @example ./ 
   */  
 
-  public static function FetchMetadata($meta_dir = '', $meta_attributes = array(self::META_MANDATORY), $sortby=self::META_MANDATORY, $sortasc=true, $filters=array(), $docache=true, $force=false, $meta_mandatory=self::META_MANDATORY, $meta_bytes=self::META_BYTES, $meta_format=self::META_FORMAT_TEXT) {
+  public static function FetchMetadata($meta_dir = '', $meta_attributes = array(self::META_MANDATORY), $sortby=self::META_MANDATORY, $sortasc=true, $filters=array(), $docache=true, $force=false, $meta_mandatory=self::META_MANDATORY, $meta_bytes=self::META_BYTES, $meta_format=self::META_FORMAT_TEXT, $meta_data=array()) {
     
     // ...
     static $cache=array();
+
+    // TODO: 
+    
+    // - HANDLE DATA!!! 
+    // - HANDLE DATA!!! 
+    // - HANDLE DATA!!! 
+    // - HANDLE DATA!!! 
+    // - HANDLE DATA!!! 
+
+    // » inject inspired by cache » do cache if requested any not in » PRIOR
+    // if(is_array($meta_data) && $docache && !array_key_exists($meta_dir, $cache)) 
+    //  $cache[$meta_dir]=$meta_data;
 
     // scan directory if not cached or forced
     if($force || !array_key_exists($meta_dir, $cache)) {
@@ -197,12 +209,12 @@ abstract class Widespread {
             break;
         }
         
+        // TODO: $meta_format == 'JSON' VS. $meta_format == 'TEXT'
         if($meta_format==self::META_FORMAT_JSON) {
 
         } elseif {
 
         }
-        // TODO: $meta_format == 'JSON' VS. $meta_format == 'TEXT'
 
         // gather partial for metadata inspection
         $fp = fopen( $meta_file_path, 'r' );
@@ -356,6 +368,30 @@ abstract class Widespread {
   }
 
   /**
+  * glob* extension
+  *
+  * @static 
+  * @param {String} $pattern string ~ '\/**\/*'
+  * @param {Integer} $flags see http://php.net/manual/en/function.glob.php
+  * @param {Boolean} $recurse recurse into subdirectories - defaults to true
+  * @return {Array} matched files path *
+  */
+
+  public static function Glob($pattern, $flags = 0, $recurse=true){
+
+    // ...
+    $files = glob($pattern, $flags);        
+
+    // ...
+    if($recurse) {
+      foreach (glob(dirname($pattern).'/*', GLOB_ONLYDIR|GLOB_NOSORT) as $dir) {
+        $files = array_merge($files, self::Glob($dir.'/'.basename($pattern), $flags));
+      }        
+    }
+    return $files;
+  }
+
+  /**
   * extract references and gather file contents > return as array filename <> contents - TODO: > remove those suppressor's when gathering contents and/or handle w/some kind of feedback > lalalog.
   *
   * @static 
@@ -369,6 +405,53 @@ abstract class Widespread {
   * @param {String} $trace_prefix 
   * @param {String} $trace_suffix 
   * @return {String} partials
+  */
+
+  /*
+
+  ====================
+  = Partials Current =
+  ====================
+
+  {{>partials/list.html :[{           
+      "sortby": "firstname",
+      "sortasc": "true",
+      "filter": {
+        "function": [
+          ["EQ", "CTO"]
+        ], 
+        "firstname": [
+          ["CI", "Bill"]
+        ]
+      }
+    }] 
+  }}
+
+  ===================
+  = Partials Future =
+  ===================
+
+  <!-- 
+  {
+    "include partials/list.html": {   
+      "sortby": "age", 
+      "sortasc": false, 
+      "filter": {
+        "function": [
+          ["IN", ["CTO", "EX-CTO", "CIO"]],
+          ["EX", ["CAA"]],
+        ] 
+      }
+    } 
+  }
+  -->
+
+  ====================
+  = Partials Legacy  =
+  ====================
+
+  Think about it.
+
   */
 
   public static function FetchPartials(&$bucket, &$options, &$widgets, $filename, $template='', $process=false, $trace=false, $trace_prefix='/* ', $trace_suffix=' */') {
