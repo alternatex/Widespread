@@ -1,5 +1,11 @@
 <?php namespace Widespread;
 
+/*
+- FETCH PARTIALS > main/list/item
+- FETCH CONTENTS BY INTEGRATING CALLS TO FETCH METADATA
+- FILTER DATA VIA FetchMetaData and/or FetchPartials *
+*/
+
 /**
 * Widespread
 *
@@ -51,11 +57,60 @@ abstract class Widespread {
   const META_FORMAT_TEXT = 'text';
   
   /**
+  * file mime type «text/plain»
+  * @constant
+  * @type {String} 
+  */
+  const META_FORMAT_TEXT_MIME = 'text/plain';  
+  
+  /**
+  * file mime type «text/plain»
+  * @constant
+  * @type {String} 
+  */
+  const META_FORMAT_TEXT_PATTERN = '*.txt';
+
+  /**
+  * file mime type «text/html»
+  * @constant
+  * @type {String} 
+  */
+  const META_FORMAT_HTML = 'html';
+  
+  /**
+  * file mime type «text/html»
+  * @constant
+  * @type {String} 
+  */
+  const META_FORMAT_HTML_MIME = 'text/html';  
+  
+  /**
+  * file mime type «text/html»
+  * @constant
+  * @type {String} 
+  */
+  const META_FORMAT_HTML_PATTERN = '*.html';
+  
+  /**
   * file mime type «application/json»
   * @constant
   * @type {String} 
   */
-  const META_FORMAT_JSON = 'json';
+  const META_FORMAT_JSON = 'json';  
+  
+  /**
+  * file mime type «application/json»
+  * @constant
+  * @type {String} 
+  */
+  const META_FORMAT_JSON_MIME = 'application/json';  
+  
+  /**
+  * file mime type «application/json»
+  * @constant
+  * @type {String} 
+  */
+  const META_FORMAT_JSON_PATTERN = '*.json';
 
   /**
   * gather partial references
@@ -63,6 +118,13 @@ abstract class Widespread {
   * @type {String} | regex
   */  
   const PARTIAL_REF = '/{{(>)(.+?)\\1?}}+/s';
+
+  /**
+  * html comments pattern
+  * @constant
+  * @type {String} | regex
+  */  
+  const MATCH_HTML_COMMENTS = '/<!--.*-->/sU';
 
   /**
   * default access path delimiter
@@ -84,26 +146,7 @@ abstract class Widespread {
   *     'contents/members/', 
   *
   *     // properties to extract
-  *     array('UUID', 'Name', 'Repository', 'Version', 'Sort', 'Status'),
-  *
-  *     // sort by field
-  *     'Sort', 
-  *
-  *     // sort ascending
-  *     false,
-  *
-  *     // filters to apply
-  *     array(
-  *
-  *       // published only
-  *       'Status' => array(array('EQ', 'Published')),
-  *
-  *       // restrict by name
-  *       'Name' => array(array('IN', array('XXX2')),array('EX', array('XXX'))), 
-  * 
-  *       // restrict by age
-  *       'Sort'  => array(array('LT', 1000), array('GT', 0))
-  *     )
+  *     array('UUID', 'Name', 'Repository', 'Version', 'Sort', 'Status')
   *   );
   * ?> 
   * </code> 
@@ -115,17 +158,13 @@ abstract class Widespread {
   * @example ./ 
   */  
 
-  public static function FetchMetadata($meta_dir = '', $meta_attributes = array(self::META_MANDATORY), $sortby=self::META_MANDATORY, $sortasc=true, $filters=array(), $docache=true, $force=false, $meta_mandatory=self::META_MANDATORY, $meta_bytes=self::META_BYTES, $meta_format=self::META_FORMAT_TEXT, $meta_data=array()) {
+  public static function FetchMetadata($meta_dir = '', $meta_attributes = array(self::META_MANDATORY), $sortby=self::META_MANDATORY, $sortasc=true, $filters=array(), $docache=true, $force=false, $meta_mandatory=self::META_MANDATORY, $meta_bytes=self::META_BYTES, $meta_format=self::META_FORMAT_TEXT, &$meta_data=null) {
     
     // ...
     static $cache=array();
 
     // TODO: 
     
-    // - HANDLE DATA!!! 
-    // - HANDLE DATA!!! 
-    // - HANDLE DATA!!! 
-    // - HANDLE DATA!!! 
     // - HANDLE DATA!!! 
 
     // » inject inspired by cache » do cache if requested any not in » PRIOR
@@ -201,19 +240,19 @@ abstract class Widespread {
         // check if accessible
         if (!is_readable($meta_file_path)) continue;    
 
+        // TODO: implement
+        // TODO: implement
+        // TODO: implement
+
+        // handle by format *
         switch($meta_format) {
           case self::META_FORMAT_JSON:
+            break;
+          case self::META_FORMAT_HTML:
             break;
           case self::META_FORMAT_TEXT:
           default:
             break;
-        }
-        
-        // TODO: $meta_format == 'JSON' VS. $meta_format == 'TEXT'
-        if($meta_format==self::META_FORMAT_JSON) {
-
-        } elseif {
-
         }
 
         // gather partial for metadata inspection
@@ -268,99 +307,53 @@ abstract class Widespread {
       $ctxs=$cache[$meta_dir];
     }
 
+    // bucket for matches *
+    $matches = array();
+
+    // extract html comments
+    preg_match_all(self::MATCH_HTML_COMMENTS, '<!-- 
+      {
+        "include partials/list.html": {   
+          "sortby": "age", 
+          "sortasc": false, 
+          "filter": {
+            "function": [
+              ["IN", ["CTO", "EX-CTO", "CIO"]],
+              ["EX", ["CAA"]]
+            ] 
+          }
+        } 
+      }
+      -->testsetwestset <!-- rwesrsdsdfsd -->', $matches);   
+
+    // process matches
+    foreach($matches[0] as $match) {
+
+      // strip html comment tags
+      $clean = trim(str_replace(array('<!--', '-->'), '', $match));
+      
+      // handle json
+      if(is_array(($data=json_decode($clean, true))))){
+
+      // handle plain text
+      } else {
+
+        // normal comment ?! just strip?!
+      }
+    }
+
     // free mem
     unset($metas);
 
     // do cache if requested
     if($docache) $cache[$meta_dir]=$ctxs;
 
-    // create sort fnc 
-    $sortfunc = create_function('$a,$b', 'return strnatcasecmp($a["'.$sortby.'"], $b["'.$sortby.'"]);');
     
     // iterate contexts
     foreach($ctxs as $ctxid => $ctx) {
 
-      // temp helper holding entities matching filters
-      $filtered=array();
-
-      // ...
-      foreach($ctx as $item) {
-          
-        // flag as match by default
-        $ismatch=true;
-
-        // process filters
-        foreach($filters as $filter => $rules) {
-      
-          // existance check
-          if(!isset($item[$filter])) { $ismatch=false; break; }
-          
-          // extract
-          $candidate = $item[$filter];
-
-          // process rules
-          foreach($rules as $rule) {
-            
-            // extract operand
-            $operand = $rule[0];
-
-            // extract against
-            $against = $rule[1];
-
-            // validate rule
-            switch($operand) {
-              case 'EQ':
-                $ismatch=($candidate===$against);
-                break;
-              case 'NOT': 
-                $ismatch=($candidate!==$against);
-                break;
-              case 'CI':
-                $ismatch=(stripos($candidate, $against)!==false); 
-                break;
-              case 'CS':
-                $ismatch=(strpos($candidate, $against)!==false); 
-                break;                    
-              case 'GT':
-                $ismatch=(intval($candidate)>intval($against));
-                break;
-              case 'LT':
-                $ismatch=(intval($candidate)<intval($against));
-                break;
-              case 'IN':
-                $ismatch=in_array($candidate, $against);
-                break;
-              case 'EX':
-                $ismatch=!in_array($candidate, $against);
-                break;
-              default:
-                trigger_error("Unknown operand: \"$operand\"", E_USER_WARNING);
-                break;
-            }
-            
-            // skip item on mismatch (AND-selector)
-            if(!$ismatch) break;          
-          }          
-
-          // skip item on mismatch (AND-selector)
-          if(!$ismatch) break;  
-        }
-        
-        // store match
-        if($ismatch) $filtered[]=$item;
-      }
-
-      // apply filtered
-      if(sizeof($filters)>0) $ctx=$filtered;        
-
-      // sort context by value
-      uasort($ctx, $sortfunc);
-
-      // apply sort direction (defaults to ascending)
-      if(!$sortasc) $ctx=array_reverse($ctx);
-
       // (re-)attach
-      $ctxs[$ctxid]=$ctx;
+      $ctxs[$ctxid]=self::FilterData($ctx, $sortby, $sortasc, $filters, $docache, $force, $meta_mandatory);
     }
 
     // return extracted *
@@ -368,28 +361,138 @@ abstract class Widespread {
   }
 
   /**
-  * glob* extension
+  * array filtering & sorting helper *
   *
+  * <code> 
+  * <?php
+  *
+  *   // ...
+  *   $data = Widespread::FilterData(
+  *
+  *     // data reference
+  *     $data, 
+  *
+  *     // properties to extract
+  *     array('UUID', 'Name', 'Repository', 'Version', 'Sort', 'Status'),
+  *
+  *     // sort by field
+  *     'Sort', 
+  *
+  *     // sort ascending
+  *     false,
+  *
+  *     // filters to apply
+  *     array(
+  *
+  *       // published only
+  *       'Status' => array(array('EQ', 'Published')),
+  *
+  *       // restrict by name
+  *       'Name' => array(array('IN', array('XXX2')),array('EX', array('XXX'))), 
+  * 
+  *       // restrict by age
+  *       'Sort'  => array(array('LT', 1000), array('GT', 0))
+  *     )
+  *   );
+  * ?> 
+  * </code> 
+  *  
   * @static 
-  * @param {String} $pattern string ~ '\/**\/*'
-  * @param {Integer} $flags see http://php.net/manual/en/function.glob.php
-  * @param {Boolean} $recurse recurse into subdirectories - defaults to true
-  * @return {Array} matched files path *
-  */
+  * @param array $items collection of items to filter
+  * @param string $sortby item attribute to sort by
+  * @param boolean $sortasc ascendig/descending sort flag
+  * @param array $filters filters to apply
+  * @param boolean $docache cache *
+  * @param boolean $force force execution (ignore cache)
+  * @return array $items filtered data
+  * @example ./ 
+  */   
 
-  public static function Glob($pattern, $flags = 0, $recurse=true){
+  public static function FilterData(&$items = null, $sortby=self::META_MANDATORY, $sortasc=true, $filters=array(), $docache=true, $force=false) {
 
-    // ...
-    $files = glob($pattern, $flags);        
+    // create sort fnc 
+    $sortfunc = create_function('$a,$b', 'return strnatcasecmp($a["'.$sortby.'"], $b["'.$sortby.'"]);');
+    
+    // iterate contexts
+    foreach($items as $item) {
 
-    // ...
-    if($recurse) {
-      foreach (glob(dirname($pattern).'/*', GLOB_ONLYDIR|GLOB_NOSORT) as $dir) {
-        $files = array_merge($files, self::Glob($dir.'/'.basename($pattern), $flags));
-      }        
-    }
-    return $files;
+      // temp helper holding entities matching filters
+      $filtered=array();
+          
+      // flag as match by default
+      $ismatch=true;
+
+      // process filters
+      foreach($filters as $filter => $rules) {
+    
+        // existance check
+        if(!isset($item[$filter])) { $ismatch=false; break; }
+        
+        // extract
+        $candidate = $item[$filter];
+
+        // process rules
+        foreach($rules as $rule) {
+          
+          // extract operand
+          $operand = $rule[0];
+
+          // extract against
+          $against = $rule[1];
+
+          // validate rule
+          switch($operand) {
+            case 'EQ':
+              $ismatch=($candidate===$against);
+              break;
+            case 'NOT': 
+              $ismatch=($candidate!==$against);
+              break;
+            case 'CI':
+              $ismatch=(stripos($candidate, $against)!==false); 
+              break;
+            case 'CS':
+              $ismatch=(strpos($candidate, $against)!==false); 
+              break;                    
+            case 'GT':
+              $ismatch=(intval($candidate)>intval($against));
+              break;
+            case 'LT':
+              $ismatch=(intval($candidate)<intval($against));
+              break;
+            case 'IN':
+              $ismatch=in_array($candidate, $against);
+              break;
+            case 'EX':
+              $ismatch=!in_array($candidate, $against);
+              break;
+            default:
+              trigger_error("Unknown operand: \"$operand\"", E_USER_WARNING);
+              break;
+          }
+          
+          // skip item on mismatch (AND-selector)
+          if(!$ismatch) break;          
+        }          
+
+        // skip item on mismatch (AND-selector)
+        if(!$ismatch) break;  
+      }
+      
+      // store match
+      if($ismatch) $filtered[]=$item;
   }
+
+  // ...
+  $items = $filtered;
+
+  // sort context by value
+  uasort($filtered, $sortfunc);
+
+  // apply sort direction (defaults to ascending)
+  if(!$sortasc) $ctx=array_reverse($filtered);
+
+}
 
   /**
   * extract references and gather file contents > return as array filename <> contents - TODO: > remove those suppressor's when gathering contents and/or handle w/some kind of feedback > lalalog.
@@ -452,6 +555,12 @@ abstract class Widespread {
 
   Think about it.
 
+  ====================
+  = DRY              =
+  ====================  
+
+  Merge widget selector w/ FetchMetaData
+
   */
 
   public static function FetchPartials(&$bucket, &$options, &$widgets, $filename, $template='', $process=false, $trace=false, $trace_prefix='/* ', $trace_suffix=' */') {
@@ -497,8 +606,7 @@ abstract class Widespread {
         $matches[0][0] = $matches[2][0] = $partial_filename;
         
         // store original contents to replace em' laterz 
-        $widgets[$partial_filename] = $original;
-          
+        $widgets[$partial_filename] = $original;          
       }
 
       // process found partials {{>partial}} >> partial || set empty 
@@ -526,6 +634,12 @@ abstract class Widespread {
   */
 
   public static function ReplacePartials($bucket, &$widgets, $trace=false, $trace_prefix='/* ', $trace_suffix=' */'){  
+
+    // TODO: mustache conforming replacements {{{htmlentity-encoded}}} {{plain}}
+    // TODO: mustache conforming replacements {{{htmlentity-encoded}}} {{plain}}
+    // TODO: mustache conforming replacements {{{htmlentity-encoded}}} {{plain}}
+    // TODO: mustache conforming replacements {{{htmlentity-encoded}}} {{plain}}
+    // TODO: mustache conforming replacements {{{htmlentity-encoded}}} {{plain}}
 
     // extract bucket identifiers
     $buckets = array_keys($bucket);
@@ -615,5 +729,29 @@ abstract class Widespread {
     }
 
     return $current;
+  }  
+
+  /**
+  * glob* extension
+  *
+  * @static 
+  * @param {String} $pattern string ~ '\/**\/*'
+  * @param {Integer} $flags see http://php.net/manual/en/function.glob.php
+  * @param {Boolean} $recurse recurse into subdirectories - defaults to true
+  * @return {Array} matched files path *
+  */
+
+  public static function Glob($pattern, $flags = 0, $recurse=true){
+
+    // ...
+    $files = glob($pattern, $flags);        
+
+    // ...
+    if($recurse) {
+      foreach (glob(dirname($pattern).'/*', GLOB_ONLYDIR|GLOB_NOSORT) as $dir) {
+        $files = array_merge($files, self::Glob($dir.'/'.basename($pattern), $flags));
+      }        
+    }
+    return $files;
   }  
 }
