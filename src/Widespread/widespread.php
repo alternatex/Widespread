@@ -754,4 +754,22 @@ abstract class Widespread {
     }
     return $files;
   }  
+
+  /**
+  * helper: extract constants by prefix
+  *
+  * @static 
+  * @param {String} $prefix constant prefix eg. constant: MY_NAMESPACE_ACTION - prefix: MY_NAMESPACE_ - turns array('action' => MY_NAMESPACE_ACTION)
+  * @return void
+  */
+
+  public static function GetConstants($prefix, &$settings=array()){
+    foreach(get_defined_constants() as $key => $value){ 
+        $prefixc=strlen($prefix);
+        if(($substr=substr($key, 0, $prefixc))==$prefix) {     
+            $settings[strtolower(substr($key, $prefixc))] = $value;
+        }
+    }
+    return $settings;
+  }  
 }
