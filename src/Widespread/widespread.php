@@ -1,11 +1,5 @@
 <?php namespace Widespread;
 
-/*
-- FETCH PARTIALS > main/list/item
-- FETCH CONTENTS BY INTEGRATING CALLS TO FETCH METADATA
-- FILTER DATA VIA FetchMetaData and/or FetchPartials *
-*/
-
 /**
 * Widespread
 *
@@ -163,14 +157,6 @@ abstract class Widespread {
     // ...
     static $cache=array();
 
-    // TODO: 
-    
-    // - HANDLE DATA!!! 
-
-    // » inject inspired by cache » do cache if requested any not in » PRIOR
-    // if(is_array($meta_data) && $docache && !array_key_exists($meta_dir, $cache)) 
-    //  $cache[$meta_dir]=$meta_data;
-
     // scan directory if not cached or forced
     if($force || !array_key_exists($meta_dir, $cache)) {
 
@@ -238,22 +224,7 @@ abstract class Widespread {
         $meta_file_path = "$metas_dir/$meta_file";
           
         // check if accessible
-        if (!is_readable($meta_file_path)) continue;    
-
-        // TODO: implement
-        // TODO: implement
-        // TODO: implement
-
-        // handle by format *
-        switch($meta_format) {
-          case self::META_FORMAT_JSON:
-            break;
-          case self::META_FORMAT_HTML:
-            break;
-          case self::META_FORMAT_TEXT:
-          default:
-            break;
-        }
+        if (!is_readable($meta_file_path)) continue;            
 
         // gather partial for metadata inspection
         $fp = fopen( $meta_file_path, 'r' );
@@ -294,12 +265,8 @@ abstract class Widespread {
       foreach($sort as $sortkey){
 
         // get context
-        echo "$ctx=array_pop(array_slice(explode('/', $meta_dir), 1, 1));";
-
-        //$ctx=array_pop(array_slice(explode('/', $meta_dir), 1, 1));
-
-        //$ctx=str_replace('/', '_', $meta_dir);
-        $ctx=$meta_dir;
+        if(false) $ctx=array_pop(array_slice(explode('/', $meta_dir), 1, 1));
+        else $ctx=$meta_dir;
 
         // create context if not exists
         if(!array_key_exists($ctx, $ctxs)) $ctxs[$ctx]=array(); 
@@ -313,62 +280,9 @@ abstract class Widespread {
       // retrieve from cache
       $ctxs=$cache[$meta_dir];
     }
-    
-    /*
-    // bucket for matches *
-    $matches = array();
-
-    // extract html comments
-    preg_match_all(self::MATCH_HTML_COMMENTS, '<!-- 
-      {
-        "include partials/list.html": {   
-          "sortby": "age", 
-          "sortasc": false, 
-          "filter": {
-            "function": [
-              ["IN", ["CTO", "EX-CTO", "CIO"]],
-              ["EX", ["CAA"]]
-            ] 
-          }
-        } 
-      }
-      -->testsetwestset <!-- rwesrsdsdfsd -->', $matches);   
-
-    // process matches
-    foreach($matches[0] as $match) {
-
-      // strip html comment tags
-      $clean = trim(str_replace(array('<!--', '-->'), '', $match));
-      
-      // handle json
-      if(is_array(($data=json_decode($clean, true)))){
-
-      // handle plain text
-      } else {
-
-        // normal comment ?! just strip?!
-      }
-    }
-
-    // free mem
-    unset($metas);
-    */
 
     // do cache if requested
     if($docache) $cache[$meta_dir]=$ctxs;
-
-    echo "values: ";
-    print_r(($ctxs));
-    echo " :values-end";
-
-    // iterate contexts
-    foreach($ctxs as $ctxid => $ctx) {
-
-      // (re-)attach
-     // $ctxs[$ctxid]=self::FilterData($ctx, $sortby, $sortasc, $filters, $docache, $force, $meta_mandatory);
-    }
-
-    print_r($ctxs);
 
     // return extracted *
     return $ctxs;

@@ -26,14 +26,15 @@ if($disable_log) ob_end_clean();
 echo "*** METADATA-ITEMS ***\n";
 print_r($items);
 
-$items = array_pop($items);
+// ...
+$itemstest = array_pop($items);
 
 // ...
 echo "*** METADATA-SORTBY-ATTR (ASC)***\n";
-$items_inv = Widespread::FilterData($items, "Version"); 
-print_r($items_inv);
+$itemstest_sortasc = Widespread::FilterData($itemstest, "Version"); 
+print_r($itemstest_sortasc);
 
 // ...
 echo "*** METADATA-SORTBY-ATTR (DESC)***\n";
-$items_inv = Widespread::FilterData($items, "Version", false); 
-print_r($items_inv);
+$itemstest_sortdesc = Widespread::FilterData($itemstest, "Version", false); 
+print_r($itemstest_sortdesc);
