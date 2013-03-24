@@ -276,11 +276,13 @@ abstract class Widespread {
         if(empty($data[$meta_mandatory])) continue;
 
         // determine meta path
-        $path = trim(preg_replace('|/+|','/', str_replace('\\','/',$meta_file))); 
+        $path = trim(preg_replace('|/+|','/', str_replace( array('\\', '//'), array('//', '/'), '/'.$meta_file))); 
 
         // add meta w/data to list
         $metas[$path] = $data;
       }
+
+      print_r($metas);
 
       // sort list items alphabetically > - case-insensitive
       ($sort=array_keys($metas)) && sort($sort);
@@ -292,8 +294,13 @@ abstract class Widespread {
       foreach($sort as $sortkey){
 
         // get context
-        $ctx=array_pop(array_slice(explode('/', $meta_dir), 1, 1));
-        
+        echo "$ctx=array_pop(array_slice(explode('/', $meta_dir), 1, 1));";
+
+        //$ctx=array_pop(array_slice(explode('/', $meta_dir), 1, 1));
+
+        //$ctx=str_replace('/', '_', $meta_dir);
+        $ctx=$meta_dir;
+
         // create context if not exists
         if(!array_key_exists($ctx, $ctxs)) $ctxs[$ctx]=array(); 
         
@@ -306,7 +313,8 @@ abstract class Widespread {
       // retrieve from cache
       $ctxs=$cache[$meta_dir];
     }
-
+    
+    /*
     // bucket for matches *
     $matches = array();
 
@@ -333,7 +341,7 @@ abstract class Widespread {
       $clean = trim(str_replace(array('<!--', '-->'), '', $match));
       
       // handle json
-      if(is_array(($data=json_decode($clean, true))))){
+      if(is_array(($data=json_decode($clean, true)))){
 
       // handle plain text
       } else {
@@ -344,17 +352,23 @@ abstract class Widespread {
 
     // free mem
     unset($metas);
+    */
 
     // do cache if requested
     if($docache) $cache[$meta_dir]=$ctxs;
 
-    
+    echo "values: ";
+    print_r(($ctxs));
+    echo " :values-end";
+
     // iterate contexts
     foreach($ctxs as $ctxid => $ctx) {
 
       // (re-)attach
-      $ctxs[$ctxid]=self::FilterData($ctx, $sortby, $sortasc, $filters, $docache, $force, $meta_mandatory);
+     // $ctxs[$ctxid]=self::FilterData($ctx, $sortby, $sortasc, $filters, $docache, $force, $meta_mandatory);
     }
+
+    print_r($ctxs);
 
     // return extracted *
     return $ctxs;
@@ -371,9 +385,6 @@ abstract class Widespread {
   *
   *     // data reference
   *     $data, 
-  *
-  *     // properties to extract
-  *     array('UUID', 'Name', 'Repository', 'Version', 'Sort', 'Status'),
   *
   *     // sort by field
   *     'Sort', 
@@ -484,14 +495,16 @@ abstract class Widespread {
   }
 
   // ...
-  $items = $filtered;
+  if(sizeof($filters)>0) $items = $filtered;
 
   // sort context by value
-  uasort($filtered, $sortfunc);
+  uasort($items, $sortfunc);
 
   // apply sort direction (defaults to ascending)
-  if(!$sortasc) $ctx=array_reverse($filtered);
+  if(!$sortasc) $items=array_reverse($items);
 
+  // ...
+  return $items;
 }
 
   /**

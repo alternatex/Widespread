@@ -1,4 +1,4 @@
 {
-  "cmd": ["cp -R ${project_path}/${project_base_name}/ ${project_path}/../.${project_base_name}"],
+  "cmd": ["cp -R ${project_path}/${project_base_name}/ ${project_path}/../.${project_base_name} && cp -R ${project_path}/${project_base_name}/ ${project_path}/../Desktop/webroot/${project_base_name}"],
   "shell": true
 }
