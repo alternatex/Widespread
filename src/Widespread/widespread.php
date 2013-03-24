@@ -9,7 +9,7 @@
 * @version 2.0.0
 * @copyright 2012-2013 Gianni Furger <gianni.furger@gmail.com>
 * @license Released under two licenses: new BSD, and MIT. (see LICENSE)
-* @example see README.md
+* @example see README.md OR test/index.php
 */
 
 abstract class Widespread {
@@ -311,7 +311,7 @@ abstract class Widespread {
   *       'Status' => array(array('EQ', 'Published')),
   *
   *       // restrict by name
-  *       'Name' => array(array('IN', array('XXX2')),array('EX', array('XXX'))), 
+  *       'Name' => array(array('IN', array('Included')),array('EX', array('Excluded'))), 
   * 
   *       // restrict by age
   *       'Sort'  => array(array('LT', 1000), array('GT', 0))
@@ -320,6 +320,8 @@ abstract class Widespread {
   * ?> 
   * </code> 
   *  
+  * Roadmap: 2.0.1 add support for custom filters rules
+  *
   * @static 
   * @param array $items collection of items to filter
   * @param string $sortby item attribute to sort by
@@ -329,7 +331,7 @@ abstract class Widespread {
   * @param boolean $force force execution (ignore cache)
   * @return array $items filtered data
   * @example ./ 
-  */   
+  */     
 
   public static function FilterData(&$items = null, $sortby=self::META_MANDATORY, $sortasc=true, $filters=array(), $docache=true, $force=false) {
 
@@ -382,6 +384,12 @@ abstract class Widespread {
               break;
             case 'LT':
               $ismatch=(intval($candidate)<intval($against));
+              break;
+            case 'GE':
+              $ismatch=(intval($candidate)>=intval($against));
+              break;
+            case 'LE':
+              $ismatch=(intval($candidate)<=intval($against));
               break;
             case 'IN':
               $ismatch=in_array($candidate, $against);
@@ -640,7 +648,7 @@ abstract class Widespread {
   * helper: extract constants by prefix
   *
   * @static 
-  * @param {String} $prefix constant prefix eg. constant: MY_NAMESPACE_ACTION - prefix: MY_NAMESPACE_ - turns array('action' => MY_NAMESPACE_ACTION)
+  * @param {String} $prefix constant prefix eg. constant: MY_NAMESPACE_ACTION - prefix: MY_NAMESPACE_ - turns into array('action' => MY_NAMESPACE_ACTION)
   * @return void
   */
 
