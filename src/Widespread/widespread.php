@@ -253,8 +253,6 @@ abstract class Widespread {
         $metas[$path] = $data;
       }
 
-      print_r($metas);
-
       // sort list items alphabetically > - case-insensitive
       ($sort=array_keys($metas)) && sort($sort);
       
@@ -424,6 +422,22 @@ abstract class Widespread {
   /**
   * extract references and gather file contents > return as array filename <> contents - TODO: > remove those suppressor's when gathering contents and/or handle w/some kind of feedback > lalalog.
   *
+  * @example 
+  *
+  *  {{>partials/list.html :[{           
+  *      "sortby": "firstname",
+  *      "sortasc": "true",
+  *      "filter": {
+  *        "function": [
+  *          ["EQ", "CTO"]
+  *        ], 
+  *        "firstname": [
+  *          ["CI", "Bill"]
+  *        ]
+  *      }
+  *    }] 
+  *  }}
+  *
   * @static 
   * @param {Array} $bucket array holding references and their contents
   * @param {Array} $options array holding options 
@@ -435,59 +449,6 @@ abstract class Widespread {
   * @param {String} $trace_prefix 
   * @param {String} $trace_suffix 
   * @return {String} partials
-  */
-
-  /*
-
-  ====================
-  = Partials Current =
-  ====================
-
-  {{>partials/list.html :[{           
-      "sortby": "firstname",
-      "sortasc": "true",
-      "filter": {
-        "function": [
-          ["EQ", "CTO"]
-        ], 
-        "firstname": [
-          ["CI", "Bill"]
-        ]
-      }
-    }] 
-  }}
-
-  ===================
-  = Partials Future =
-  ===================
-
-  <!-- 
-  {
-    "include partials/list.html": {   
-      "sortby": "age", 
-      "sortasc": false, 
-      "filter": {
-        "function": [
-          ["IN", ["CTO", "EX-CTO", "CIO"]],
-          ["EX", ["CAA"]],
-        ] 
-      }
-    } 
-  }
-  -->
-
-  ====================
-  = Partials Legacy  =
-  ====================
-
-  Think about it.
-
-  ====================
-  = DRY              =
-  ====================  
-
-  Merge widget selector w/ FetchMetaData
-
   */
 
   public static function FetchPartials(&$bucket, &$options, &$widgets, $filename, $template='', $process=false, $trace=false, $trace_prefix='/* ', $trace_suffix=' */') {
@@ -562,12 +523,6 @@ abstract class Widespread {
 
   public static function ReplacePartials($bucket, &$widgets, $trace=false, $trace_prefix='/* ', $trace_suffix=' */'){  
 
-    // TODO: mustache conforming replacements {{{htmlentity-encoded}}} {{plain}}
-    // TODO: mustache conforming replacements {{{htmlentity-encoded}}} {{plain}}
-    // TODO: mustache conforming replacements {{{htmlentity-encoded}}} {{plain}}
-    // TODO: mustache conforming replacements {{{htmlentity-encoded}}} {{plain}}
-    // TODO: mustache conforming replacements {{{htmlentity-encoded}}} {{plain}}
-
     // extract bucket identifiers
     $buckets = array_keys($bucket);
     
@@ -579,7 +534,6 @@ abstract class Widespread {
   }
 
   /**
-  * TODO: define supported objects and friends - check if there is a way to not loose pre-fetched stuff *only* affecting references to primitive datatypes, so ..... > $xxx = &$data['yyy']; first, then changing reference name???
   *
   * wrapper for getting or setting, renaming and enforcing type of object/array segments 
   *

@@ -3,9 +3,6 @@
 // helpers *
 $disable_log=true;
 
-// load dependencies through composer
-//require_once('vendor/autoload.php');
-
 // include core
 require_once('../src/Widespread/widespread.php');
 
