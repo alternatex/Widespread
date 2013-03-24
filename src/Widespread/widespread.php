@@ -6,7 +6,7 @@
 * Common utilities packed together
 *
 * @author Gianni Furger
-* @version 2.1.0
+* @version 2.1.1
 * @copyright 2012-2013 Gianni Furger <gianni.furger@gmail.com>
 * @license Released under two licenses: new BSD, and MIT. (see LICENSE)
 * @example see README.md OR test/index.php
@@ -18,7 +18,7 @@ abstract class Widespread {
   * @constant
   * @type {String}
   */  
-  const VERSION = '2.1.0'; 
+  const VERSION = '2.1.1'; 
  
   /**
   * number of bytes to be read for metadata analysis
@@ -329,6 +329,7 @@ abstract class Widespread {
   *  
   * Roadmap: 2.1.0 add support for custom source to aggregate data from * return injected into $items
   *          2.2.0 add support for custom filters rules
+  *          2.3.0 add support for 2nd, 3rd sort -> 2nd, last sort if path if not used already * (check by same attribute position on asc/desc sort - ml * ...)
   *
   * @static 
   * @param array $items collection of items to filter
@@ -353,12 +354,12 @@ abstract class Widespread {
 
     // create sort fnc 
     $sortfunc = create_function('$a,$b', 'return strnatcasecmp($a["'.$sortby.'"], $b["'.$sortby.'"]);');
-    
+
+    // temp helper holding entities matching filters
+    $filtered=array();    
+
     // iterate contexts
     foreach($items as $item) {
-
-      // temp helper holding entities matching filters
-      $filtered=array();
           
       // flag as match by default
       $ismatch=true;
@@ -431,13 +432,14 @@ abstract class Widespread {
   }
 
   // ...
-  if(sizeof($filters)>0) $items = $filtered;
+  if(sizeof($filters)>0) $items = (array) $filtered;
 
   // sort context by value
   uasort($items, $sortfunc);
 
   // apply sort direction (defaults to ascending)
   if(!$sortasc) $items=array_reverse($items);
+  else $items=array_merge(array(), $items);
 
   // ...
   return $items;
