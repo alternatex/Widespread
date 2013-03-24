@@ -24,14 +24,20 @@ echo "*** METADATA-ITEMS ***\n";
 print_r($items);
 
 // ...
-$itemstest = array_pop($items);
-
+//$itemstest = array_pop($items);
+$itemtest=array();
 // ...
 echo "*** METADATA-SORTBY-ATTR (ASC)***\n";
-$itemstest_sortasc = Widespread::FilterData($itemstest, "Version"); 
+$itemstest_sortasc = Widespread::FilterData($itemstest, "age", true, array(), false, false, "examples/format/json/", array(
+  'Name' => 'Plugin Name',
+  'Repository' => 'Repository',
+  'Version' => 'Version'
+  )
+); 
+
 print_r($itemstest_sortasc);
 
 // ...
 echo "*** METADATA-SORTBY-ATTR (DESC)***\n";
-$itemstest_sortdesc = Widespread::FilterData($itemstest, "Version", false); 
+$itemstest_sortdesc = Widespread::FilterData($itemstest, "age", false); 
 print_r($itemstest_sortdesc);

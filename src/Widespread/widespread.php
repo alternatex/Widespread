@@ -218,37 +218,44 @@ abstract class Widespread {
 
       // process matched files
       foreach($metas_resources as $meta_file) {
-
-        // build full path
-        if(substr($metas_dir, -1, 1)=='/') $metas_dir=substr($metas_dir, 0, strlen($metas_dir)-1);
+        // helper *
         $meta_file_path = "$metas_dir/$meta_file";
+
+        // handle "default" - TODO: what about performance?
+        if(!is_array($data = json_decode(file_get_contents("$metas_dir/$meta_file"), true))) {
           
-        // check if accessible
-        if (!is_readable($meta_file_path)) continue;            
+          // build full path
+          if(substr($metas_dir, -1, 1)=='/') $metas_dir=substr($metas_dir, 0, strlen($metas_dir)-1);
+          
+            
+          // check if accessible
+          if (!is_readable($meta_file_path)) continue;            
 
-        // gather partial for metadata inspection
-        $fp = fopen( $meta_file_path, 'r' );
-        $data = fread( $fp, $meta_bytes); 
-        fclose( $fp );
-      
-        // extract meta attributes
-        foreach($meta_attributes as $field => $regex) {
-          preg_match( '/^[ \t\/*#@]*' . preg_quote( $regex, '/' ) . ':(.*)$/mi', $data, ${$field}); // backref
-          ${$field} = !empty( ${$field}) ? trim(preg_replace(self::META_FIELD, '', ${$field}[1])) : '';
-        }
-
-        // flatten
-        $data = compact(array_keys($meta_attributes));
+          // gather partial for metadata inspection
+          $fp = fopen( $meta_file_path, 'r' );
+          $data = fread( $fp, $meta_bytes); 
+          fclose( $fp );
         
-        // ...
-        $data['Path'] = $meta_file_path;
+          // extract meta attributes
+          foreach($meta_attributes as $field => $regex) {
+            preg_match( '/^[ \t\/*#@]*' . preg_quote( $regex, '/' ) . ':(.*)$/mi', $data, ${$field}); // backref
+            ${$field} = !empty( ${$field}) ? trim(preg_replace(self::META_FIELD, '', ${$field}[1])) : '';
+          }
 
-        // maybe there will be no mandatory field in future: || sizeof($data)==0...
-        if(empty($data[$meta_mandatory])) continue;
+          // flatten
+          $data = compact(array_keys($meta_attributes));
+
+          // maybe there will be no mandatory field in future: || sizeof($data)==0...
+          if(empty($data[$meta_mandatory])) continue;
+
+        } 
 
         // determine meta path
         $path = trim(preg_replace('|/+|','/', str_replace( array('\\', '//'), array('//', '/'), '/'.$meta_file))); 
 
+        // ...
+        $data['path'] = $meta_file_path;
+        
         // add meta w/data to list
         $metas[$path] = $data;
       }
@@ -330,11 +337,19 @@ abstract class Widespread {
   * @param array $filters filters to apply
   * @param boolean $docache cache *
   * @param boolean $force force execution (ignore cache)
+  * @param String $source custom datasource for usage with self::FetchMetadata();
   * @return array $items filtered data
   * @example ./ 
   */     
 
-  public static function FilterData(&$items = null, $sortby=self::META_MANDATORY, $sortasc=true, $filters=array(), $docache=true, $force=false) {
+  public static function FilterData(&$items = null, $sortby=self::META_MANDATORY, $sortasc=true, $filters=array(), $docache=true, $force=false, $source=null, $attributes=array(self::META_MANDATORY)) {
+
+    // custom source to fetch data from?
+    if($source!=null) {
+
+      // fetch metadata * - TODO: ensure cached?! - NOTE: must be pop-able *
+      $items = array_pop(self::FetchMetadata($source, $attributes));
+    }
 
     // create sort fnc 
     $sortfunc = create_function('$a,$b', 'return strnatcasecmp($a["'.$sortby.'"], $b["'.$sortby.'"]);');
@@ -662,4 +677,22 @@ abstract class Widespread {
     }
     return $settings;
   }  
+
+  /**
+  * helper: check if is json data structure - read contents to array » is_array()? return false if not; else the array retrieved *
+  *
+  * @static 
+  * @param {String} $filename path to file to check / retrieve
+  * @return void
+  */
+
+  public static function FileIsJSON($filepath, &$data=null){
+    // ...    
+    try{
+      $data=@json_decode(file_get_contents($filepath));
+      return $data;
+    } catch(Exception $ex){
+      return false;
+    }
+  }
 }
