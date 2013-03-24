@@ -6,7 +6,7 @@
 * Common utilities packed together
 *
 * @author Gianni Furger
-* @version 2.0.0
+* @version 2.1.0
 * @copyright 2012-2013 Gianni Furger <gianni.furger@gmail.com>
 * @license Released under two licenses: new BSD, and MIT. (see LICENSE)
 * @example see README.md OR test/index.php
@@ -18,7 +18,7 @@ abstract class Widespread {
   * @constant
   * @type {String}
   */  
-  const VERSION = '2.0.0'; 
+  const VERSION = '2.1.0'; 
  
   /**
   * number of bytes to be read for metadata analysis
@@ -320,8 +320,8 @@ abstract class Widespread {
   * ?> 
   * </code> 
   *  
-  * Roadmap: 2.1.0 add support for custom filters rules
-  *          2.2.0 ...
+  * Roadmap: 2.1.0 add support for custom source to aggregate data from * return injected into $items
+  *          2.2.0 add support for custom filters rules
   *
   * @static 
   * @param array $items collection of items to filter
