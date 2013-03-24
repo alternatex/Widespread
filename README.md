@@ -30,6 +30,11 @@ use Widespread\Widespread as Widespread;
 ?>
 ```
 
+Use-Case: Preprocessor 
+----------------------
+
+... see sledgehammer *
+
 Metadata-Extraction
 -------------------
 
@@ -63,8 +68,8 @@ $data = Widespread::FetchMetadata(
 
     // restrict by name
     'Name' => array(
-      array('IN', array('XXX', 'XXX4')),
-      array('EX', array('XXX2'))
+      array('IN', array('Include_1', 'Include_2')),
+      array('EX', array('Exclude_1'))
     ),  
 
     // restrict by age

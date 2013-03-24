@@ -320,7 +320,8 @@ abstract class Widespread {
   * ?> 
   * </code> 
   *  
-  * Roadmap: 2.0.1 add support for custom filters rules
+  * Roadmap: 2.1.0 add support for custom filters rules
+  *          2.2.0 ...
   *
   * @static 
   * @param array $items collection of items to filter
