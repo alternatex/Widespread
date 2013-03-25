@@ -6,7 +6,7 @@
 * Common utilities packed together
 *
 * @author Gianni Furger
-* @version 2.1.1
+* @version 2.1.2
 * @copyright 2012-2013 Gianni Furger <gianni.furger@gmail.com>
 * @license Released under two licenses: new BSD, and MIT. (see LICENSE)
 * @example see README.md OR test/index.php
@@ -18,7 +18,7 @@ abstract class Widespread {
   * @constant
   * @type {String}
   */  
-  const VERSION = '2.1.1'; 
+  const VERSION = '2.1.2'; 
  
   /**
   * number of bytes to be read for metadata analysis
