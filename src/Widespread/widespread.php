@@ -6,7 +6,7 @@
 * Common utilities packed together
 *
 * @author Gianni Furger
-* @version 2.1.2
+* @version 2.1.3
 * @copyright 2012-2013 Gianni Furger <gianni.furger@gmail.com>
 * @license Released under two licenses: new BSD, and MIT. (see LICENSE)
 * @example see README.md OR test/index.php
@@ -18,7 +18,7 @@ abstract class Widespread {
   * @constant
   * @type {String}
   */  
-  const VERSION = '2.1.2'; 
+  const VERSION = '2.1.3'; 
  
   /**
   * number of bytes to be read for metadata analysis
@@ -257,7 +257,8 @@ abstract class Widespread {
         $data['path'] = $meta_file_path;
         
         // add meta w/data to list
-        $metas[$path] = $data;
+        $object = new Item($data);
+        $metas[$path] = $object;
       }
 
       // sort list items alphabetically > - case-insensitive
@@ -279,11 +280,9 @@ abstract class Widespread {
         // store within context
         $ctxs[$ctx][]=$metas[$sortkey];
       }
-
     } else {
-
       // retrieve from cache
-      $ctxs=$cache[$meta_dir];
+      $ctxs=&$cache[$meta_dir];
     }
 
     // do cache if requested
@@ -343,7 +342,7 @@ abstract class Widespread {
   * @example ./ 
   */     
 
-  public static function FilterData(&$items = null, $sortby=self::META_MANDATORY, $sortasc=true, $filters=array(), $docache=true, $force=false, $source=null, $attributes=array(self::META_MANDATORY)) {
+  public static function &FilterData(&$items = null, $sortby=self::META_MANDATORY, $sortasc=true, $filters=array(), $docache=true, $force=false, $source=null, $attributes=array(self::META_MANDATORY)) {
 
     // custom source to fetch data from?
     if($source!=null) {
@@ -353,7 +352,7 @@ abstract class Widespread {
     }
 
     // create sort fnc 
-    $sortfunc = create_function('$a,$b', 'return strnatcasecmp($a["'.$sortby.'"], $b["'.$sortby.'"]);');
+    $sortfunc = create_function('$a,$b', 'return strnatcasecmp($a->data["'.$sortby.'"], $b->data["'.$sortby.'"]);');
 
     // temp helper holding entities matching filters
     $filtered=array();    
@@ -368,10 +367,10 @@ abstract class Widespread {
       foreach($filters as $filter => $rules) {
     
         // existance check
-        if(!isset($item[$filter])) { $ismatch=false; break; }
+        if(!isset($item->data[$filter])) { $ismatch=false; break; }
         
         // extract
-        $candidate = $item[$filter];
+        $candidate = $item->data[$filter];
 
         // process rules
         foreach($rules as $rule) {
@@ -479,6 +478,17 @@ abstract class Widespread {
 
   public static function FetchPartials(&$bucket, &$options, &$widgets, $filename, $template='', $process=false, $trace=false, $trace_prefix='/* ', $trace_suffix=' */') {
 
+    // TODO CACHE CACHE CACHE - UPDATE MAIN UPDATE MAIN -> WIDGETS @ BUCKETS DISABLED » ADD FLAG 2 CONTROL -> cleanup tracer?!!
+    // TODO CACHE CACHE CACHE - UPDATE MAIN UPDATE MAIN -> WIDGETS @ BUCKETS DISABLED » ADD FLAG 2 CONTROL -> cleanup tracer?!!
+    // TODO CACHE CACHE CACHE - UPDATE MAIN UPDATE MAIN -> WIDGETS @ BUCKETS DISABLED » ADD FLAG 2 CONTROL -> cleanup tracer?!!
+    // TODO CACHE CACHE CACHE - UPDATE MAIN UPDATE MAIN -> WIDGETS @ BUCKETS DISABLED » ADD FLAG 2 CONTROL -> cleanup tracer?!!
+    // TODO CACHE CACHE CACHE - UPDATE MAIN UPDATE MAIN -> WIDGETS @ BUCKETS DISABLED » ADD FLAG 2 CONTROL -> cleanup tracer?!!
+    // TODO CACHE CACHE CACHE - UPDATE MAIN UPDATE MAIN -> WIDGETS @ BUCKETS DISABLED » ADD FLAG 2 CONTROL -> cleanup tracer?!!
+    // TODO CACHE CACHE CACHE - UPDATE MAIN UPDATE MAIN -> WIDGETS @ BUCKETS DISABLED » ADD FLAG 2 CONTROL -> cleanup tracer?!!
+    // TODO CACHE CACHE CACHE - UPDATE MAIN UPDATE MAIN -> WIDGETS @ BUCKETS DISABLED » ADD FLAG 2 CONTROL -> cleanup tracer?!!
+    // TODO CACHE CACHE CACHE - UPDATE MAIN UPDATE MAIN -> WIDGETS @ BUCKETS DISABLED » ADD FLAG 2 CONTROL -> cleanup tracer?!!
+    // TODO CACHE CACHE CACHE - UPDATE MAIN UPDATE MAIN -> WIDGETS @ BUCKETS DISABLED » ADD FLAG 2 CONTROL -> cleanup tracer?!!
+
     // init 
     $partials = '';
  
@@ -553,7 +563,7 @@ abstract class Widespread {
     $buckets = array_keys($bucket);
     
     // iterate buckets and replace references - TODO: find a better way than that q&d-impl.
-    foreach($buckets as $key) { foreach($buckets as $key2) { $bucket[$key] = str_replace("{{>".$key2."}}", ($trace?$trace_prefix.'[START] '.$key2.$trace_suffix."\n":'').$bucket[$key2].($trace?$trace_prefix.'[END] '.$key2.$trace_suffix."\n":''), $bucket[$key]); $bucket[$key] = str_replace(array_values($widgets), array_keys($widgets), $bucket[$key]); } }
+    foreach($buckets as $key) { foreach($buckets as $key2) { $bucket[$key] = str_replace("{{>".$key2."}}", ($trace?$trace_prefix.'[START] '.$key2.$trace_suffix."\n":'').$bucket[$key2].($trace?$trace_prefix.'[END] '.$key2.$trace_suffix."\n":''), $bucket[$key]); /*$bucket[$key] = str_replace(array_values($widgets), array_keys($widgets), $bucket[$key]); */ } }
 
     // ...
     return $bucket;
@@ -697,4 +707,18 @@ abstract class Widespread {
       return false;
     }
   }
+}
+
+/**
+* Widespread\Item
+*
+* Yet just performance related record wrapper » object->data - php &ref horror :/
+*
+*/
+
+class Item {
+  public $data = array();
+  public function __construct($data){
+    $this->data = $data;
+  }  
 }

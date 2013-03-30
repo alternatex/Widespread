@@ -47,7 +47,7 @@ Extract metadata from file header (defaults to first 4096 bytes)
 $data = Widespread::FetchMetadata(
 
   // path to entity
-  'contents/members/', 
+  'test/examples/members/', 
 
   // properties to extract
   array('UUID', 'Name', 'Repository', 'Version', 'Sort', 'Status'),
@@ -92,16 +92,22 @@ Gather templates w/partials and merge w/data
 <?php 
 
 // ...
-$buckets = $options = $widgets = array();
-
-// ...
-$template = '
-  {{>/templates/body}}
-';
+foreach(array('buckets', 'options', 'widgets') as $context) $$context = array(); // $buckets = $options = $widgets = array();
 
 // fetch partials
-Widespread::FetchPartials($buckets, $options, $widgets, 'index.html', $template);
+Widespread::FetchPartials(
+  $buckets, 
+  $options, 
+  $widgets, 
+  'index.html', 
+  '{{>/templates/body}}'
+);
 
+// create mustache rendering engine helper
+$m = new \Mustache_Engine(array('partials' => $buckets));
+
+// process
+print $m->render($buckets['index.html'], $data);
 ?>
 ```
 

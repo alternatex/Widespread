@@ -11,9 +11,9 @@ if($disable_log) ob_start();
 
 // ...
 $items = Widespread::FetchMetadata("examples/format/text/", array(
-'Name' => 'Plugin Name',
-'Repository' => 'Repository',
-'Version' => 'Version'
+  'Name' => 'Plugin Name',
+  'Repository' => 'Repository',
+  'Version' => 'Version'
 ));
 
 // disable inner log statements 
