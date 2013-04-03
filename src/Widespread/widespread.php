@@ -1,16 +1,26 @@
 <?php namespace Widespread;
 
+// ... TODO: fix *
+date_default_timezone_set('Europe/Berlin');
+
 /**
 * Widespread
 *
 * Common utilities packed together
 *
 * @author Gianni Furger
-* @version 2.1.3
+* @version 2.1.2
 * @copyright 2012-2013 Gianni Furger <gianni.furger@gmail.com>
 * @license Released under two licenses: new BSD, and MIT. (see LICENSE)
 * @example see README.md OR test/index.php
 */
+
+class Item {
+  public $data = array();
+  public function __construct($data){
+    $this->data = $data;
+  }  
+}
 
 abstract class Widespread {
 
@@ -18,8 +28,15 @@ abstract class Widespread {
   * @constant
   * @type {String}
   */  
-  const VERSION = '2.1.3'; 
+  const VERSION = '2.1.2'; 
  
+  /**
+  * default cache lifetime in seconds 
+  * @constant
+  * @type {Integer} 
+  */  
+  const META_CACHE_LIFETIME = 10;
+
   /**
   * number of bytes to be read for metadata analysis
   * @constant
@@ -155,7 +172,38 @@ abstract class Widespread {
   public static function FetchMetadata($meta_dir = '', $meta_attributes = array(self::META_MANDATORY), $sortby=self::META_MANDATORY, $sortasc=true, $filters=array(), $docache=true, $force=false, $meta_mandatory=self::META_MANDATORY, $meta_bytes=self::META_BYTES, $meta_format=self::META_FORMAT_TEXT, &$meta_data=null) {
     
     // ...
-    static $cache=array();
+    static $cache=null;
+
+    // TODO: $lifetime if not forced - force 
+    // ...
+
+    // initialize cache from fs *
+    if($cache==null) {
+      
+      // ...
+      $cache = array();
+
+      // try to fetch cache data (php-serialized)
+      try {
+        
+        // ...        
+        if(time() - self::GetFileTime_LastModified($meta_dir.'/cache.dat') > META_CACHE_LIFETIME) {
+        
+          // ...          
+          unlink($meta_dir.'/cache.dat');
+        } else {
+        
+          // ...
+          $cache = unserialize(file_get_contents($meta_dir.'/cache.dat'));
+        }
+      
+      // ...
+      } catch(Exception $e) {
+
+        // TODO: implement ... *
+        die(print_r($e, true));
+      }
+    }
 
     // scan directory if not cached or forced
     if($force || !array_key_exists($meta_dir, $cache)) {
@@ -218,6 +266,7 @@ abstract class Widespread {
 
       // process matched files
       foreach($metas_resources as $meta_file) {
+        
         // helper *
         $meta_file_path = "$metas_dir/$meta_file";
 
@@ -226,8 +275,7 @@ abstract class Widespread {
           
           // build full path
           if(substr($metas_dir, -1, 1)=='/') $metas_dir=substr($metas_dir, 0, strlen($metas_dir)-1);
-          
-            
+                     
           // check if accessible
           if (!is_readable($meta_file_path)) continue;            
 
@@ -280,13 +328,23 @@ abstract class Widespread {
         // store within context
         $ctxs[$ctx][]=$metas[$sortkey];
       }
+
     } else {
+
       // retrieve from cache
       $ctxs=&$cache[$meta_dir];
     }
 
     // do cache if requested
     if($docache) $cache[$meta_dir]=$ctxs;
+
+    if($docache) {
+      try {
+        file_put_contents($meta_dir.'/cache.dat', serialize($cache));
+      } catch(Exception $e) {
+        die(print_r($e, true));
+      }
+    }
 
     // return extracted *
     return $ctxs;
@@ -478,17 +536,6 @@ abstract class Widespread {
 
   public static function FetchPartials(&$bucket, &$options, &$widgets, $filename, $template='', $process=false, $trace=false, $trace_prefix='/* ', $trace_suffix=' */') {
 
-    // TODO CACHE CACHE CACHE - UPDATE MAIN UPDATE MAIN -> WIDGETS @ BUCKETS DISABLED » ADD FLAG 2 CONTROL -> cleanup tracer?!!
-    // TODO CACHE CACHE CACHE - UPDATE MAIN UPDATE MAIN -> WIDGETS @ BUCKETS DISABLED » ADD FLAG 2 CONTROL -> cleanup tracer?!!
-    // TODO CACHE CACHE CACHE - UPDATE MAIN UPDATE MAIN -> WIDGETS @ BUCKETS DISABLED » ADD FLAG 2 CONTROL -> cleanup tracer?!!
-    // TODO CACHE CACHE CACHE - UPDATE MAIN UPDATE MAIN -> WIDGETS @ BUCKETS DISABLED » ADD FLAG 2 CONTROL -> cleanup tracer?!!
-    // TODO CACHE CACHE CACHE - UPDATE MAIN UPDATE MAIN -> WIDGETS @ BUCKETS DISABLED » ADD FLAG 2 CONTROL -> cleanup tracer?!!
-    // TODO CACHE CACHE CACHE - UPDATE MAIN UPDATE MAIN -> WIDGETS @ BUCKETS DISABLED » ADD FLAG 2 CONTROL -> cleanup tracer?!!
-    // TODO CACHE CACHE CACHE - UPDATE MAIN UPDATE MAIN -> WIDGETS @ BUCKETS DISABLED » ADD FLAG 2 CONTROL -> cleanup tracer?!!
-    // TODO CACHE CACHE CACHE - UPDATE MAIN UPDATE MAIN -> WIDGETS @ BUCKETS DISABLED » ADD FLAG 2 CONTROL -> cleanup tracer?!!
-    // TODO CACHE CACHE CACHE - UPDATE MAIN UPDATE MAIN -> WIDGETS @ BUCKETS DISABLED » ADD FLAG 2 CONTROL -> cleanup tracer?!!
-    // TODO CACHE CACHE CACHE - UPDATE MAIN UPDATE MAIN -> WIDGETS @ BUCKETS DISABLED » ADD FLAG 2 CONTROL -> cleanup tracer?!!
-
     // init 
     $partials = '';
  
@@ -557,13 +604,13 @@ abstract class Widespread {
   * @return {Array} bucket's content w/partial references replaced
   */
 
-  public static function ReplacePartials($bucket, &$widgets, $trace=false, $trace_prefix='/* ', $trace_suffix=' */'){  
+  public static function ReplacePartials($bucket, &$widgets, $trace=false, $trace_prefix='/* ', $trace_suffix=' */', $process_widgets=true){  
 
     // extract bucket identifiers
     $buckets = array_keys($bucket);
     
     // iterate buckets and replace references - TODO: find a better way than that q&d-impl.
-    foreach($buckets as $key) { foreach($buckets as $key2) { $bucket[$key] = str_replace("{{>".$key2."}}", ($trace?$trace_prefix.'[START] '.$key2.$trace_suffix."\n":'').$bucket[$key2].($trace?$trace_prefix.'[END] '.$key2.$trace_suffix."\n":''), $bucket[$key]); /*$bucket[$key] = str_replace(array_values($widgets), array_keys($widgets), $bucket[$key]); */ } }
+    foreach($buckets as $key) { foreach($buckets as $key2) { $bucket[$key] = str_replace("{{>".$key2."}}", ($trace?$trace_prefix.'[START] '.$key2.$trace_suffix."\n":'').$bucket[$key2].($trace?$trace_prefix.'[END] '.$key2.$trace_suffix."\n":''), $bucket[$key]); if($process_widgets) { $bucket[$key] = str_replace(array_values($widgets), array_keys($widgets), $bucket[$key]); } } }
 
     // ...
     return $bucket;
@@ -707,18 +754,35 @@ abstract class Widespread {
       return false;
     }
   }
-}
 
-/**
-* Widespread\Item
-*
-* Yet just performance related record wrapper » object->data - php &ref horror :/
-*
-*/
 
-class Item {
-  public $data = array();
-  public function __construct($data){
-    $this->data = $data;
-  }  
+  /**
+  * helper: filemtime wrapper * (borrowed from: http://www.php.net/manual/en/function.filemtime.php#100692)
+  *
+  * @static 
+  * @param {String} $filename path to file to check / retrieve
+  * @return void
+  */
+
+  public static function GetFileTime_LastModified($filePath) { 
+
+    $time = filemtime($filePath); 
+
+    $isDST = (date('I', $time) == 1); 
+    $systemDST = (date('I') == 1); 
+
+    $adjustment = 0; 
+
+    if($isDST == false && $systemDST == true) 
+      $adjustment = 3600; 
+    
+    else if($isDST == true && $systemDST == false) 
+      $adjustment = -3600; 
+
+    else 
+      $adjustment = 0; 
+
+    return ($time + $adjustment); 
+  } 
+
 }
